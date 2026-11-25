@@ -2772,7 +2772,7 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 body.pv #pv{display:block} body.pv #home,body.pv .wrap{display:none!important} body.pv #btnReport,body.pv #btnTheory,body.pv .prog,body.pv .labname{visibility:hidden}
 .welcome{position:relative}.mclose{position:absolute;right:12px;top:10px;z-index:5;font-size:20px;line-height:1;width:38px;height:38px;padding:0;border-radius:50%;color:var(--g4)}
 .mclose:hover{background:var(--g1)}
-#acct{position:relative;margin-left:auto}header button{white-space:nowrap;transition-property:background,color,border-color,box-shadow,transform}.achip{white-space:nowrap}body.signed #whoami{display:none}body.home #btnHome,body.home #acIn{display:none}#acct+#btnHome{margin-left:0}
+#acct{position:relative;margin-left:auto}header button{white-space:nowrap;transition-property:background,color,border-color,box-shadow,transform}.achip{white-space:nowrap}body.signed #whoami{display:none}header{z-index:55!important}.modal{top:66px!important}.modal .box{max-height:calc(100vh - 106px)!important}header .logo{cursor:pointer;border-radius:12px;transition:opacity .2s}header .logo:hover{opacity:.85}body.home #btnHome,body.home #acIn{display:none}#acct+#btnHome{margin-left:0}
 .achip{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:30px;padding:4px 14px 4px 4px}
 .achip:hover{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.4)}
 .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12.5px;background:linear-gradient(135deg,var(--cyan),var(--violet));color:#fff;flex:none}
@@ -3061,6 +3061,10 @@ function renderAdmin(){const rows=admRows(),groups=[...new Set(rows.map(r=>r.gro
   $('#adCsv').onclick=()=>{const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const lines=[['ПІБ','Група','Пошта',...[1,2,3,4,5,6,7].map(n=>'ЛР'+n),'Тест, бали','ECTS'].map(q).join(';'),
     ...vis.map(r=>[r.name,r.group,r.email,...[1,2,3,4,5,6,7].map(n=>{const s=r.subs['lab'+n];return !s?'':(s.mark!=null&&s.mark!==''?s.mark:'здано '+s.done+'/'+s.total)}),r.subs.test?fmtN(r.subs.test.score):'',r.subs.test?r.subs.test.letter:''].map(q).join(';'))];
     dlFile('ІСБ_успішність'+(ADM.g?'_'+ADM.g:'')+'.csv',new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv'}))}}
+/* ---------- logo = на головну ---------- */
+{const L=$('header .logo');L.setAttribute('role','link');L.tabIndex=0;L.title='На головну';
+ const go=()=>{document.querySelectorAll('.modal.on').forEach(m=>{if(m.id!=='mAuth')m.classList.remove('on')});const m=$('#acM');if(m)m.classList.remove('on');showHome()};
+ L.onclick=go;L.onkeydown=e=>{if(e.key==='Enter')go()}}
 /* ---------- admin documents: відомість (тест) і звіт (усі роботи) ---------- */
 function admVis(){return admRows().filter(r=>(!ADM.g||r.group===ADM.g)&&(!ADM.q||(r.name+' '+r.email).toLowerCase().includes(ADM.q.toLowerCase())))}
 async function admDoc(kind){const note=$('#adN');if(!window.docx){note.textContent='Бібліотека Word не завантажилась. Оновіть сторінку.';return}
