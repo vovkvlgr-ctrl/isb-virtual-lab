@@ -359,7 +359,7 @@ body.home #home{display:block} body.home .wrap{display:none} body.home #btnRepor
   <div class="hero"><div class="stars"></div>
     <div class="hero-in">
       <div>
-        <div class="kicker"><i></i>Житомирська політехніка × Корпоративна академія Viatec</div>
+        <div class="kicker"><i></i>Житомирська політехніка · Факультет інформаційно-комп'ютерних технологій</div>
         <h1>Інтегральні системи безпеки</h1>
         <p class="lead">Віртуальна лабораторія на обладнанні Hikvision. Налаштовуйте камери, реєстратори, домофони, контроль доступу й охоронну сигналізацію так само, як на справжньому стенді, просто в браузері.</p>
         <div class="cta"><button class="pri" id="goLab1">Почати лабораторну № 1</button><button class="ghostw" id="goLabs">Усі 7 робіт</button></div>
@@ -379,7 +379,7 @@ body.home #home{display:block} body.home .wrap{display:none} body.home #btnRepor
     <p class="sub">Сім робіт за методичними рекомендаціями курсу. Кожна закінчується автоматичним звітом.</p>
     <div class="lgrid" id="lgrid"></div>
   </div>
-  <div class="homefoot"><span>Державний університет «Житомирська політехніка» · кафедра [назва кафедри]</span><span>Обладнання та методична підтримка: Корпоративна академія Viatec</span></div>
+  <div class="homefoot"><span>Державний університет «Житомирська політехніка»</span><span>Факультет інформаційно-комп'ютерних технологій · Кафедра комп'ютерних технологій у медицині та телекомунікаціях</span></div>
 </section>
 
 <div class="wrap">
@@ -1034,7 +1034,7 @@ async function exportDocx(){
   const qa=STEPS.flatMap((s,i)=>s.q.map((q,k)=>[P('Крок '+(i+1)+'. '+q,{b:true}),P(S.answers[i+'_'+k]||'—')])).flat();
   const tbl=d.tables.flatMap(t=>[P(t.title),T([t.head,...t.rows])]);
   const shots=[];for(let k=0;k<d.shots.length;k++)shots.push(...await img(d.shots[k][0],'Рисунок '+(k+1)+' — '+d.shots[k][1]));
-  const children=[P('Державний університет «Житомирська політехніка»',{c:true}),P('ЗВІТ',{c:true,b:true,size:32}),P('з лабораторної роботи № '+d.n,{c:true}),P('«'+d.title+'»',{c:true,b:true}),P('з дисципліни «Інтегральні системи безпеки»',{c:true}),P('Виконав(ла): '+S.student.name+', група '+S.student.group,{c:true}),P('Дата: '+new Date().toLocaleDateString('uk-UA'),{c:true}),
+  const children=[P('Державний університет «Житомирська політехніка»',{c:true}),P("Факультет інформаційно-комп'ютерних технологій",{c:true}),P("Кафедра комп'ютерних технологій у медицині та телекомунікаціях",{c:true}),P('ЗВІТ',{c:true,b:true,size:32}),P('з лабораторної роботи № '+d.n,{c:true}),P('«'+d.title+'»',{c:true,b:true}),P('з дисципліни «Інтегральні системи безпеки»',{c:true}),P('Виконав(ла): '+S.student.name+', група '+S.student.group,{c:true}),P('Дата: '+new Date().toLocaleDateString('uk-UA'),{c:true}),
     P('1. Мета роботи',{b:true}),P(d.goal),
     P('2–3. Обладнання і параметри',{b:true}),T(d.rows,false),
     ...(tbl.length?[P('4. Результати досліджень',{b:true}),...tbl]:[]),
