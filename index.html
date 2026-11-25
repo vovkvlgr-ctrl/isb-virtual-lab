@@ -2669,9 +2669,390 @@ function setLab(n){try{localStorage.setItem(LSK[CUR],JSON.stringify(S))}catch(e)
 function openLab(n){n=typeof n==='number'?n:1;setLab(n);const other=Object.values(ST).find(x=>x.student&&x.student.name);if(!S.student.name&&other){S.student={...other.student};save()}document.body.classList.remove('home');scrollTo(0,0);if(!S.student.name)$('#mStart').classList.add('on');renderSteps();renderTask();renderTheory();renderTabs();renderAll()}
 $('#goLab1').onclick=()=>openLab(1);$('#goLabs').onclick=()=>$('#labsSec').scrollIntoView({behavior:'smooth'});$('#btnHome').onclick=showHome;
 
+/* ======================= TEST BANK: 20 легких × 0,5 + 20 середніх × 2 + 10 складних × 5 = 100 ======================= */
+const TQ=[
+// ---------- легкі (0,5 бала) ----------
+{l:'e',q:'Яку IP-адресу має нова камера Hikvision із заводськими налаштуваннями?',o:['192.168.1.64','192.168.0.1','10.0.0.64','169.254.0.1'],a:0,x:'Заводська адреса камер і більшості пристроїв Hikvision — 192.168.1.64.'},
+{l:'e',q:'Яка утиліта шукає пристрої Hikvision у локальній мережі й активує їх?',o:['SADP','iVMS-4200 Player','Hik-Partner Pro Web','Wireshark'],a:0,x:'SADP знаходить пристрої в мережі, показує їхній стан і дозволяє активувати та змінити мережеві параметри.'},
+{l:'e',q:'Що дає технологія PoE?',o:['Живлення пристрою по тому самому кабелю Ethernet, що й дані','Шифрування відеопотоку','Резервування каналу зв\'язку','Підвищення роздільної здатності'],a:0,x:'Power over Ethernet передає живлення і дані одним кабелем, тому камері не потрібен окремий блок живлення.'},
+{l:'e',q:'Який кодек за однакової якості дає менший бітрейт?',o:['H.265','H.264','MJPEG','MPEG-2'],a:0,x:'H.265 стискає приблизно вдвічі ефективніше за H.264 за тієї ж якості.'},
+{l:'e',q:'Через який сервіс Hikvision пристрої підключаються до хмари для віддаленого доступу?',o:['Hik-Connect','ONVIF','DDNS-сервер провайдера','SNMP'],a:0,x:'Hik-Connect — хмарний сервіс і застосунок для віддаленого доступу до пристроїв Hikvision.'},
+{l:'e',q:'Що таке NVR?',o:['Мережевий відеореєстратор, що записує потоки IP-камер','Аналоговий відеореєстратор','Мережевий комутатор','Програма для ПК'],a:0,x:'NVR (Network Video Recorder) отримує по мережі й записує відео з IP-камер.'},
+{l:'e',q:'Який протокол дозволяє відкрити відеопотік камери за посиланням у плеєрі, наприклад VLC?',o:['RTSP','FTP','SMTP','DHCP'],a:0,x:'RTSP (Real Time Streaming Protocol) — стандартний спосіб отримати живий потік за URL.'},
+{l:'e',q:'Навіщо потрібен стандарт ONVIF?',o:['Щоб пристрої різних виробників працювали разом','Щоб шифрувати архів','Щоб живити камеру по кабелю','Щоб розпізнавати номери авто'],a:0,x:'ONVIF визначає спільний інтерфейс, тож камеру одного виробника можна підключити до реєстратора іншого.'},
+{l:'e',q:'Що таке iVMS-4200?',o:['Клієнтська програма для ПК: перегляд, архів і керування пристроями','Модель відеореєстратора','Прошивка камери','Хмарне сховище'],a:0,x:'iVMS-4200 — безкоштовний клієнт Hikvision для Windows і macOS.'},
+{l:'e',q:'У яких одиницях вимірюють частоту кадрів відео?',o:['кадрах за секунду (к/с)','кілобітах за секунду','мегапікселях','люксах'],a:0,x:'Частота кадрів — кількість кадрів за секунду (fps, к/с).'},
+{l:'e',q:'Що означає абревіатура PTZ?',o:['Поворот, нахил і зум (Pan-Tilt-Zoom)','Захист від перенапруги','Тип об\'єктива рибʼяче око','Протокол передачі часу'],a:0,x:'PTZ-камера повертається, нахиляється і змінює фокусну відстань дистанційно.'},
+{l:'e',q:'Для чого в мережі відеонагляду створюють VLAN?',o:['Щоб логічно відокремити трафік камер від інших пристроїв','Щоб збільшити довжину кабелю','Щоб подати живлення на камери','Щоб прискорити запис на диск'],a:0,x:'VLAN ділить одну фізичну мережу на ізольовані логічні сегменти.'},
+{l:'e',q:'Що зберігається в бібліотеці облич відеореєстратора?',o:['Фото облич людей з їхніми даними','Записи з усіх камер','Налаштування мережі','Журнал подій'],a:0,x:'Бібліотека облич — перелік осіб з еталонними фото, з якими реєстратор порівнює обличчя в кадрі.'},
+{l:'e',q:'Як називається пристрій біля входу, з якого відвідувач викликає квартиру?',o:['Виклична панель','Внутрішній монітор','Зчитувач карток','Контролер замка'],a:0,x:'Виклична (дверна) панель має кнопку виклику, камеру і мікрофон.'},
+{l:'e',q:'Що робить внутрішній монітор домофона?',o:['Приймає виклик, показує відео з панелі і відчиняє двері','Записує відео 24/7','Керує освітленням','Живить викличну панель'],a:0,x:'Монітор — абонентський пристрій: відео, розмова і кнопка відчинення замка.'},
+{l:'e',q:'Що з переліку НЕ є способом верифікації на терміналі доступу Hikvision?',o:['Номерний знак автомобіля','Обличчя','Картка','PIN-код'],a:0,x:'Термінал перевіряє обличчя, картку, відбиток чи PIN; номерні знаки розпізнають спеціальні камери.'},
+{l:'e',q:'Як датчики AX PRO зв\'язуються з централлю?',o:['По радіоканалу','По кабелю RS-485','Через Wi-Fi роутер','Через Bluetooth телефона'],a:0,x:'AX PRO — бездротова система: датчики працюють по радіоканалу 868 МГц (технологія Tri-X).'},
+{l:'e',q:'На що реагує PIR-датчик руху?',o:['На зміну інфрачервоного (теплового) випромінювання','На звук','На відчинення дверей','На дим'],a:0,x:'Пасивний ІЧ-датчик фіксує рух теплого тіла через зміну інфрачервоного фону.'},
+{l:'e',q:'Що фіксує магнітоконтактний датчик?',o:['Відчинення дверей чи вікна','Рух у приміщенні','Розбиття скла','Протікання води'],a:0,x:'Геркон і магніт розходяться, коли двері відчиняються, і датчик передає тривогу.'},
+{l:'e',q:'Від чого захищає тампер у корпусі датчика чи централі?',o:['Від розкриття або зняття пристрою','Від перегріву','Від вологи','Від блискавки'],a:0,x:'Тамперна кнопка дає тривогу, коли корпус відкривають або відривають від стіни.'},
+// ---------- середні (2 бали) ----------
+{l:'m',q:'ПК має адресу 192.168.0.100/24, а камера — 192.168.1.64/24. Чому веб-інтерфейс камери не відкривається?',o:['Пристрої в різних підмережах, і маршрутизатора між ними немає','Камера не активована паролем','Браузер не підтримує H.265','Потрібно ввімкнути ONVIF'],a:0,x:'За маски /24 це різні мережі: 192.168.0.x і 192.168.1.x. Треба перевести камеру в підмережу ПК (наприклад, через SADP).'},
+{l:'m',q:'Для чого камера формує основний потік і субпотік?',o:['Основний — для запису у високій якості, субпотік — для перегляду при слабкому каналі','Основний — для звуку, субпотік — для відео','Субпотік — резервна копія основного','Вони однакові, другий потрібен для ONVIF'],a:0,x:'Субпотік з меншою роздільністю і бітрейтом розвантажує мережу при перегляді кількох камер чи з телефона.'},
+{l:'m',q:'Як зміниться зображення, якщо скоротити витримку з 1/25 до 1/10000 с?',o:['Рух стане чіткішим, але кадр темнішим','Кадр стане світлішим і розмитим','Збільшиться частота кадрів','Нічого не зміниться'],a:0,x:'Коротка витримка «заморожує» рух, проте сенсор отримує менше світла.'},
+{l:'m',q:'Чим режим VBR відрізняється від CBR?',o:['Бітрейт змінюється залежно від складності сцени, що економить диск','Бітрейт завжди максимальний','VBR працює лише з H.264','VBR вимикає субпотік'],a:0,x:'Змінний бітрейт знижує обсяг на статичних сценах і підвищує його, коли в кадрі багато руху.'},
+{l:'m',q:'Для лінії перетину задано напрямок A→B. Коли спрацює подія?',o:['Лише коли об\'єкт перетинає лінію з боку A на бік B','При будь-якому перетині','Лише коли об\'єкт зупиняється на лінії','Коли об\'єкт рухається вздовж лінії'],a:0,x:'Напрямок фільтрує події: рух B→A ігнорується. Для обох напрямків обирають A↔B.'},
+{l:'m',q:'Чому операторам створюють окремі облікові записи з обмеженими правами, а не дають пароль admin?',o:['Принцип мінімальних привілеїв: кожен має лише потрібні права, а дії видно в журналі','Бо admin не може переглядати відео','Так вимагає Hik-Connect','Щоб збільшити кількість потоків'],a:0,x:'Обмежені ролі зменшують ризик помилок і зловживань та дають персональну відповідальність.'},
+{l:'m',q:'Яка головна перевага запису за подіями порівняно з безперервним?',o:['Економія місця на диску й швидший пошук потрібних фрагментів','Вища роздільна здатність','Не потрібен жорсткий диск','Звук записується автоматично'],a:0,x:'Записуються лише фрагменти з рухом чи тривогами, тож архів зберігається довше.'},
+{l:'m',q:'Навіщо в експортованому відео водяний знак?',o:['Щоб підтвердити, що запис не змінювали після експорту','Щоб приховати номери авто','Щоб зменшити розмір файлу','Щоб додати логотип установи'],a:0,x:'Водяний знак дозволяє перевірити цілісність і автентичність відео, наприклад для доказів.'},
+{l:'m',q:'Яке посилання RTSP відкриває основний потік першого каналу камери Hikvision?',o:['rtsp://user:pass@IP:554/Streaming/Channels/101','rtsp://user:pass@IP:554/Streaming/Channels/102','http://IP/live/main','rtsp://IP:80/channel1'],a:0,x:'Номер каналу і потоку: 101 — канал 1 основний, 102 — канал 1 субпотік.'},
+{l:'m',q:'Що станеться, якщо підвищити поріг схожості в розпізнаванні облич?',o:['Менше хибних збігів, але частіше система не впізнає свою людину','Більше хибних збігів','Зросте швидкість запису','Нічого, поріг впливає лише на звук'],a:0,x:'Поріг — компроміс між хибним прийняттям і пропуском. Вищий поріг суворіший.'},
+{l:'m',q:'Навіщо реєстратор «моделює» фото в бібліотеці облич?',o:['Будує з фото біометричну модель, без якої обличчя не порівнюється','Стискає фото для економії місця','Додає водяний знак','Перетворює фото на чорно-біле'],a:0,x:'Якщо моделювання не вдалося (поганий ракурс, мала роздільність), з цим фото порівняння не працює.'},
+{l:'m',q:'Для чого на комутаторі вмикають STP?',o:['Щоб не виникали петлі при резервних з\'єднаннях','Щоб подавати живлення по кабелю','Щоб розділити мережу на VLAN','Щоб прискорити DHCP'],a:0,x:'Spanning Tree блокує зайві шляхи і відкриває їх, якщо основний канал обірвався.'},
+{l:'m',q:'Чим платять за режим Long-Range PoE (до 300 м)?',o:['Швидкість на порту падає до 10 Мбіт/с','Живлення вимикається','Порт перестає передавати відео','Потрібен оптичний кабель'],a:0,x:'Подовжений режим знижує швидкість, проте для одного потоку камери її зазвичай вистачає.'},
+{l:'m',q:'Що робить функція PoE Watchdog?',o:['Перевіряє, чи відповідає пристрій, і перезавантажує його вимкненням живлення на порту','Обмежує трафік камери','Блокує невідомі MAC-адреси','Показує температуру комутатора'],a:0,x:'Якщо камера «зависла» і не відповідає, комутатор сам перезапускає її живлення.'},
+{l:'m',q:'Чим порт trunk відрізняється від порту access?',o:['Trunk передає трафік кількох VLAN з мітками, access — одного VLAN без міток','Trunk подає PoE, access — ні','Access працює лише на 1 Гбіт/с','Різниці немає'],a:0,x:'Access-порти — для кінцевих пристроїв, trunk — для з\'єднання комутаторів і маршрутизаторів.'},
+{l:'m',q:'Як виклична панель відчиняє двері?',o:['Через вбудоване реле, яке керує замком на заданий час','Надсилає SMS на замок','Через Hik-Connect, без проводів','Двері відчиняє лише монітор'],a:0,x:'Реле панелі замикає чи розмикає коло електрозамка; час відчинення налаштовується.'},
+{l:'m',q:'Що означає режим верифікації «картка + обличчя»?',o:['Для проходу потрібні обидва фактори одночасно','Достатньо будь-якого з двох','Картка потрібна лише вночі','Обличчя замінює картку'],a:0,x:'«+» — двофакторна перевірка: менша зручність, вища безпека.'},
+{l:'m',q:'Термінал упізнав працівника о 22:00, але прохід заборонив. Що найімовірніше?',o:['Його шаблон розкладу не дозволяє доступ у цей час','Камера терміналу зламалась','Не вистачило PoE','Поріг схожості задано 0'],a:0,x:'Права доступу прив\'язані до розкладу: поза дозволеним часом термінал відмовляє навіть «своїм».'},
+{l:'m',q:'Який тип зони AX PRO призначають вхідним дверям?',o:['Із затримкою, щоб встигнути зняти систему з охорони','Миттєва','24-годинна','Пожежна'],a:0,x:'Затримка на вхід і вихід дає час увійти й зняти охорону без тривоги.'},
+{l:'m',q:'Чим режим «Вдома» відрізняється від «Поза домом»?',o:['Охороняється периметр, а датчики руху всередині не спрацьовують','Охорона повністю вимкнена','Працюють лише датчики руху','Сирена вимикається назавжди'],a:0,x:'Режим «Вдома» дозволяє рухатися приміщенням, поки двері та вікна під охороною.'},
+// ---------- складні (5 балів) ----------
+{l:'h',q:'Камера пише безперервно з постійним бітрейтом 4096 кбіт/с. Скільки місця займе архів за добу?',o:['≈ 44 ГБ','≈ 4 ГБ','≈ 350 ГБ','≈ 5,5 ГБ'],a:0,x:'4096 кбіт/с ÷ 8 = 512 КБ/с ≈ 0,51 МБ/с; × 86 400 с ≈ 44 ГБ.'},
+{l:'h',q:'Комутатор 802.3at: до 30 Вт на порт, загальний бюджет PoE 60 Вт. Підключили три камери по 6 Вт і PTZ, якій потрібно 36 Вт. Що станеться?',o:['PTZ не отримає потрібної потужності, бо ліміт порту 30 Вт, хоча сума 54 Вт менша за бюджет','Усе запрацює, бо 54 Вт < 60 Вт','Вимкнуться всі камери','Комутатор розподілить 60 Вт порівну'],a:0,x:'Треба перевіряти і загальний бюджет, і ліміт одного порту. 36 Вт — це Hi-PoE (802.3bt).'},
+{l:'h',q:'Яка адреса мережі й широкомовна адреса для вузла 192.168.10.77/26?',o:['Мережа 192.168.10.64, широкомовна 192.168.10.127','Мережа 192.168.10.0, широкомовна 192.168.10.255','Мережа 192.168.10.76, широкомовна 192.168.10.79','Мережа 192.168.10.64, широкомовна 192.168.10.95'],a:0,x:'/26 — блоки по 64 адреси: 0–63, 64–127… Адреса 77 у блоці 64–127.'},
+{l:'h',q:'Система розпізнавання облич з порогом 70 % плутає схожих працівників. Що робити насамперед?',o:['Підвищити поріг і замінити фото в бібліотеці на якісні фронтальні','Знизити поріг до 50 %','Вимкнути моделювання','Збільшити бітрейт субпотоку'],a:0,x:'Хибні збіги — це замалий поріг або погані еталони. Якісні фото дозволяють підняти поріг без пропусків.'},
+{l:'h',q:'Як відкрити субпотік третього каналу відеореєстратора Hikvision через RTSP?',o:['…/Streaming/Channels/302','…/Streaming/Channels/203','…/Streaming/Channels/32','…/Streaming/Channels/301'],a:0,x:'Формат: номер каналу + номер потоку. Канал 3, потік 2 → 302 (301 — основний).'},
+{l:'h',q:'Авто їде 60 км/год, витримка 1/50 с. На скільки воно зміститься за час експозиції кадру?',o:['≈ 33 см','≈ 3 см','≈ 1,2 м','≈ 1,7 см'],a:0,x:'60 км/год ≈ 16,7 м/с; × 0,02 с ≈ 0,33 м. Тому для номерів ставлять витримку 1/1000 і коротшу.'},
+{l:'h',q:'Камери в access-портах VLAN 10, а порт реєстратора — access VLAN 1. Реєстратор не бачить камер. Як виправити?',o:['Перевести порт реєстратора у VLAN 10 (або зробити trunk з VLAN 10)','Вимкнути STP','Увімкнути Long-Range PoE','Змінити кодек на H.264'],a:0,x:'Пристрої в різних VLAN без маршрутизації не бачать одне одного.'},
+{l:'h',q:'Три комутатори з\'єднали в кільце з увімкненим STP. У якому стані буде один з портів кільця?',o:['Заблокований, щоб розірвати петлю','Усі порти пересилають трафік','Порт вимкне PoE','Порт стане trunk'],a:0,x:'STP обирає кореневий міст і блокує один з надлишкових шляхів, поки основний працює.'},
+{l:'h',q:'Компоненти системи AX PRO мають клас 2, і лише один датчик — клас 1. Який клас має система?',o:['Клас 1','Клас 2','Клас 3','Середнє значення, 1,5'],a:0,x:'Клас системи визначає найслабша ланка — компонент з найнижчим класом.'},
+{l:'h',q:'8 камер пишуть цілодобово з бітрейтом 2048 кбіт/с. Який мінімальний диск потрібен для архіву на 30 діб?',o:['6 ТБ','2 ТБ','4 ТБ','1 ТБ'],a:0,x:'2048 кбіт/с ≈ 22 ГБ на добу; × 8 камер × 30 діб ≈ 5,3 ТБ. Найближчий стандартний обсяг — 6 ТБ.'}];
+
+/* ======================= PLATFORM: вхід, здача, тест, кабінети ======================= */
+const FBCFG={apiKey:"AIzaSyDtmLn0rw5Bk0UXVFgtS8WKjp-8LhJa4qA",authDomain:"isb-virtual-lab.firebaseapp.com",projectId:"isb-virtual-lab",storageBucket:"isb-virtual-lab.firebasestorage.app",messagingSenderId:"665578325054",appId:"1:665578325054:web:e9ab1dadbd7482f70bfd6f"};
+const ADMINS=['kktumtt_vvg@ztu.edu.ua'];
+const UNI=/^[^@\s]+@ztu\.edu\.ua$/i;
+let FB=null,USER=null,PROFILE=null,AUTHST='load',PENDING=null;
+const isAdm=()=>!!(USER&&USER.emailVerified&&ADMINS.includes((USER.email||'').toLowerCase()));
+const isOk=()=>!!(USER&&USER.emailVerified&&UNI.test(USER.email||''));
+const API={
+  async load(){const b='https://www.gstatic.com/firebasejs/10.12.2/';const [ap,au,fs]=await Promise.all([import(b+'firebase-app.js'),import(b+'firebase-auth.js'),import(b+'firebase-firestore.js')]);
+    const app=ap.initializeApp(FBCFG),auth=au.getAuth(app);auth.languageCode='uk';FB={auth,db:fs.getFirestore(app),A:au,F:fs}},
+  onAuth:cb=>FB.A.onAuthStateChanged(FB.auth,cb),
+  async signUp(email,pw,name,group){const {auth,A,F,db}=FB;const c=await A.createUserWithEmailAndPassword(auth,email,pw);await A.updateProfile(c.user,{displayName:name});
+    if(!ADMINS.includes(email.toLowerCase()))await F.setDoc(F.doc(db,'users',c.user.uid),{name,group,email:email.toLowerCase(),role:'student',created:F.serverTimestamp()});
+    await A.sendEmailVerification(c.user);return c.user},
+  signIn:(e,p)=>FB.A.signInWithEmailAndPassword(FB.auth,e,p),
+  signOut:()=>FB.A.signOut(FB.auth),
+  reset:e=>FB.A.sendPasswordResetEmail(FB.auth,e),
+  resend:()=>FB.A.sendEmailVerification(FB.auth.currentUser),
+  async reload(){const u=FB.auth.currentUser;await u.reload();await u.getIdToken(true);return FB.auth.currentUser},
+  async getUser(uid){const s=await FB.F.getDoc(FB.F.doc(FB.db,'users',uid));return s.exists()?s.data():null},
+  setUser:(uid,d)=>FB.F.setDoc(FB.F.doc(FB.db,'users',uid),d,{merge:true}),
+  async getSub(id){const s=await FB.F.getDoc(FB.F.doc(FB.db,'subs',id));return s.exists()?s.data():null},
+  putSub:(id,d)=>FB.F.setDoc(FB.F.doc(FB.db,'subs',id),d),
+  patchSub:(id,d)=>FB.F.updateDoc(FB.F.doc(FB.db,'subs',id),d),
+  delSub:id=>FB.F.deleteDoc(FB.F.doc(FB.db,'subs',id)),
+  async allUsers(){return (await FB.F.getDocs(FB.F.collection(FB.db,'users'))).docs.map(d=>({id:d.id,...d.data()}))},
+  async allSubs(){return (await FB.F.getDocs(FB.F.collection(FB.db,'subs'))).docs.map(d=>({id:d.id,...d.data()}))}};
+if(window.__FBAPI)Object.assign(API,window.__FBAPI);
+
+const ERR={'auth/email-already-in-use':'Ця пошта вже зареєстрована. Увійдіть або відновіть пароль.','auth/invalid-email':'Неправильний формат пошти.','auth/weak-password':'Пароль закороткий: потрібно щонайменше 8 символів.',
+  'auth/invalid-credential':'Неправильна пошта або пароль.','auth/wrong-password':'Неправильна пошта або пароль.','auth/user-not-found':'Неправильна пошта або пароль.','auth/too-many-requests':'Забагато спроб. Зачекайте кілька хвилин.',
+  'auth/network-request-failed':'Немає з\'єднання з сервером. Перевірте інтернет.','permission-denied':'Сервер відхилив запит: увійдіть з підтвердженою поштою @ztu.edu.ua.'};
+const errTxt=e=>ERR[e&&e.code]||('Помилка: '+((e&&(e.code||e.message))||e));
+const fmtN=x=>String(Math.round(x*10)/10).replace('.',',');
+const dtS=x=>{if(!x)return '—';const d=x.toDate?x.toDate():new Date(x);return d.toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})};
+function ects(p){return p>=90?['A','відмінно']:p>=82?['B','добре']:p>=74?['C','добре']:p>=64?['D','задовільно']:p>=60?['E','задовільно']:p>=35?['FX','незадовільно']:['F','незадовільно']}
+const ini=n=>(n||'?').split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+async function dlFile(name,data,note){try{const dl=window.claude&&await claude.use('downloads');if(!dl)throw 0;await dl.save({filename:name,data});note&&(note.textContent='Збережено.')}catch(e){if(e&&e.code==='declined')return;const a=document.createElement('a');a.href=URL.createObjectURL(data instanceof Blob?data:new Blob([data]));a.download=name;document.body.appendChild(a);a.click();a.remove();note&&(note.textContent='Файл сформовано.')}}
+
+/* ---------- styles & markup ---------- */
+document.head.insertAdjacentHTML('beforeend',`<style>
+#pv{display:none;max-width:1400px;margin:0 auto;padding:34px 32px 60px}
+body.pv #pv{display:block} body.pv #home,body.pv .wrap{display:none!important} body.pv #btnReport,body.pv #btnTheory,body.pv .prog,body.pv .labname{visibility:hidden}
+.welcome{position:relative}.mclose{position:absolute;right:12px;top:10px;z-index:5;font-size:20px;line-height:1;width:38px;height:38px;padding:0;border-radius:50%;color:var(--g4)}
+.mclose:hover{background:var(--g1)}
+#acct{position:relative;margin-left:auto}header button{white-space:nowrap}.achip{white-space:nowrap}body.signed #whoami{display:none}#acct+#btnHome{margin-left:0}
+.achip{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:30px;padding:4px 14px 4px 4px}
+.achip:hover{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.4)}
+.av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12.5px;background:linear-gradient(135deg,var(--cyan),var(--violet));color:#fff;flex:none}
+.amenu{position:absolute;right:0;top:calc(100% + 8px);background:#fff;color:var(--ink);border-radius:16px;box-shadow:0 24px 50px -16px rgba(10,31,77,.5);min-width:250px;padding:8px;display:none;z-index:60}
+.amenu.on{display:block}.amenu .hd{padding:10px 12px 12px;border-bottom:1px solid var(--g1);margin-bottom:6px}.amenu .hd b{display:block}.amenu .hd span{font-size:13px;color:var(--g4)}
+.amenu button{display:block;width:100%;text-align:left;border:none;box-shadow:none;background:none;padding:9px 12px;border-radius:10px}.amenu button:hover{background:var(--g1)}
+.tagadm{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(120deg,var(--violet),var(--blue));border-radius:8px;padding:1px 7px;margin-left:6px}
+.auth{max-width:860px!important;padding:0!important;display:grid;grid-template-columns:.9fr 1.1fr;overflow:hidden;position:relative}
+.au-art{background:radial-gradient(80% 60% at 20% 10%,rgba(34,195,240,.45),transparent),radial-gradient(70% 60% at 90% 90%,rgba(123,97,255,.5),transparent),linear-gradient(160deg,#0A1F4D,#12307A 60%,#1F5EFF);color:#fff;padding:34px 30px;display:flex;flex-direction:column;gap:14px;min-height:460px;position:relative;overflow:hidden}
+.au-art h2{color:#fff;-webkit-text-fill-color:#fff;background:none;margin:0;font-size:26px;line-height:1.15;letter-spacing:-.4px}.au-art p{margin:0;color:#CFE0FF;font-size:14.5px}
+.au-art ul{margin:auto 0 0;padding:0;list-style:none;display:grid;gap:10px;font-size:14px;color:#E3EEFF}.au-art li{display:flex;gap:10px;align-items:flex-start}.au-art li i{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;background:rgba(255,255,255,.14);font-style:normal;font-size:12px}
+.au-art .rings{position:absolute;right:-90px;top:-90px;width:260px;height:260px;border-radius:50%;border:1px solid rgba(159,231,255,.25);box-shadow:0 0 0 40px rgba(159,231,255,.05),0 0 0 80px rgba(159,231,255,.04)}
+.au-main{padding:30px 32px}.au-tabs{display:flex;background:var(--g1);border-radius:12px;padding:4px;margin:0 40px 18px 0}
+.au-tabs button{flex:1;border:none;background:none;box-shadow:none;border-radius:9px;padding:8px}.au-tabs button.on{background:#fff;color:var(--blue);font-weight:700;box-shadow:0 2px 8px -2px rgba(18,48,122,.2)}
+.au-f{display:grid;gap:12px}.au-f label{font-size:13px;color:var(--g4);display:grid;gap:5px}.au-f input{width:100%}
+.au-f .hint{font-size:12.5px;color:var(--g4);margin-top:-6px}.au-link{border:none;background:none;box-shadow:none;color:var(--blue);padding:0;font-size:13.5px}.au-link:hover{text-decoration:underline;box-shadow:none}
+.au-mail{font-size:56px;line-height:1;margin:4px 0 6px}
+.examrow{max-width:1500px;margin:0 auto;padding:0 40px 50px}
+.exam{position:relative;border-radius:26px;overflow:hidden;color:#fff;padding:34px 38px;display:grid;grid-template-columns:1.3fr 1fr;gap:30px;align-items:center;
+ background:radial-gradient(60% 90% at 100% 0%,rgba(123,97,255,.55),transparent),radial-gradient(50% 80% at 0% 100%,rgba(34,195,240,.45),transparent),linear-gradient(120deg,#0A1F4D,#12307A 55%,#1F5EFF);box-shadow:0 30px 60px -30px rgba(10,31,77,.7)}
+.exam h2{margin:0 0 8px;font-size:32px;letter-spacing:-.5px}.exam p{margin:0 0 18px;color:#CFE0FF;font-size:15.5px;max-width:560px}
+.exam .lv{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.exam .lv div{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:14px 16px}
+.exam .lv b{display:block;font-size:28px}.exam .lv span{font-size:13px;color:#CFE0FF}
+.exam .btns{display:flex;gap:10px;flex-wrap:wrap}.exam button.pri{background:#fff;color:var(--navy)}.exam button.ghostw{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.pvh{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}.pvh h1{margin:0;font-size:32px;color:var(--sapph);letter-spacing:-.5px}.pvh p{margin:4px 0 0;color:var(--g4)}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.kp div{background:var(--glass);border:1px solid #fff;border-radius:18px;padding:16px 18px;box-shadow:var(--sh)}.kp b{display:block;font-size:30px;color:var(--sapph);letter-spacing:-.5px}.kp span{font-size:13px;color:var(--g4)}
+.pcard{background:var(--glass);border:1px solid #fff;border-radius:22px;box-shadow:var(--sh);padding:20px 22px;backdrop-filter:blur(12px)}
+.tbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}.tbar input,.tbar select{max-width:260px}
+.gt{width:100%;border-collapse:separate;border-spacing:0;font-size:14px}.gt th{text-align:left;font-size:12.5px;color:var(--g4);font-weight:600;padding:8px 8px;border-bottom:1px solid var(--g2);white-space:nowrap}
+.gt td{padding:9px 8px;border-bottom:1px solid var(--g1);vertical-align:middle}.gt tr:hover td{background:rgba(232,239,255,.5)}.gt .c{text-align:center}
+.cell{border:1px solid transparent;border-radius:10px;padding:4px 8px;font-size:13px;min-width:62px;background:none;box-shadow:none}.cell.ok{background:var(--okbg);color:#077A57}.cell.part{background:var(--warnbg);color:#8A5A00}.cell.mk{background:#E8EFFF;color:var(--blue);font-weight:700}.cell.no{color:var(--g3);cursor:default}
+.cell.ok:hover,.cell.part:hover,.cell.mk:hover{border-color:var(--blue2)}
+.badge2{display:inline-block;border-radius:9px;padding:2px 9px;font-size:12.5px;font-weight:700}.bA,.bB{background:var(--okbg);color:#077A57}.bC,.bD,.bE{background:var(--warnbg);color:#8A5A00}.bFX,.bF{background:var(--errbg);color:#B3263D}
+.mylist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.myit{background:#fff;border:1px solid var(--g2);border-radius:18px;padding:16px 18px;display:grid;gap:6px}.myit h4{margin:0;font-size:15.5px;color:var(--sapph)}.myit .st{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13.5px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--g3);display:inline-block}.dot.ok{background:var(--ok)}.dot.w{background:var(--warn)}
+.tv{display:grid;grid-template-columns:290px 1fr;gap:22px;align-items:start}
+.tnav{position:sticky;top:86px}.timer{font-family:var(--mono);font-size:34px;font-weight:600;color:var(--sapph);letter-spacing:1px}.timer.low{color:var(--err)}
+.qgrid{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin:14px 0}.qgrid button{padding:0;height:26px;border-radius:7px;font-size:11.5px;border:1px solid var(--g2);background:#fff}
+.qgrid button.e{border-bottom:3px solid var(--mint)}.qgrid button.m{border-bottom:3px solid var(--cyan)}.qgrid button.h{border-bottom:3px solid var(--violet)}
+.qgrid button.ans{background:#E8EFFF;color:var(--blue);font-weight:700}.qgrid button.cur{outline:2px solid var(--blue);outline-offset:1px}
+.lgd{display:flex;gap:12px;font-size:12px;color:var(--g4);flex-wrap:wrap}.lgd i{display:inline-block;width:12px;height:3px;margin-right:5px;vertical-align:middle}
+.qcard{padding:30px 34px;min-height:440px;display:flex;flex-direction:column}
+.qlv{display:inline-flex;gap:8px;align-items:center;font-size:13px;font-weight:700;border-radius:20px;padding:4px 12px;align-self:flex-start}.qlv.e{background:#DDF8F2;color:#0A7A66}.qlv.m{background:#DDF3FC;color:#0B6E92}.qlv.h{background:#ECE7FF;color:#5038C8}
+.qtext{font-size:22px;line-height:1.35;color:var(--sapph);margin:16px 0 22px;font-weight:600}
+.opts{display:grid;gap:10px}.opt{display:flex;gap:14px;align-items:center;text-align:left;padding:14px 16px;border-radius:16px;border:1.5px solid var(--g2);background:#fff;font-size:16px}
+.opt b{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:var(--g1);color:var(--g4);flex:none;font-size:14px}
+.opt.sel{border-color:var(--blue);background:linear-gradient(100deg,#EEF3FF,#F2FBFF);box-shadow:0 10px 24px -14px rgba(31,94,255,.7)}.opt.sel b{background:var(--blue);color:#fff}
+.qnav{margin-top:auto;padding-top:22px;display:flex;justify-content:space-between;gap:10px}
+.res{display:grid;grid-template-columns:300px 1fr;gap:22px;align-items:start}
+.ring{width:210px;height:210px;border-radius:50%;margin:6px auto 10px;display:grid;place-items:center;position:relative}
+.ring::after{content:'';position:absolute;inset:16px;border-radius:50%;background:#fff}.ring div{position:relative;z-index:1;text-align:center}.ring b{font-size:50px;color:var(--sapph);letter-spacing:-1px;display:block;line-height:1}.ring span{font-size:13px;color:var(--g4)}
+.grade{text-align:center;font-size:18px}.grade b{font-size:36px;display:block;background:var(--iri);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lvres{display:grid;gap:10px;margin-top:16px}.lvres div{display:flex;justify-content:space-between;background:#fff;border:1px solid var(--g2);border-radius:12px;padding:9px 12px;font-size:14px}
+.rv{display:grid;gap:10px}.rvi{background:#fff;border:1px solid var(--g2);border-left:4px solid var(--ok);border-radius:14px;padding:12px 16px;font-size:14.5px}.rvi.bad{border-left-color:var(--err)}
+.rvi .q{font-weight:600;color:var(--sapph);margin-bottom:6px}.rvi .x{color:var(--g4);font-size:13.5px;margin-top:6px}.rvi .y{color:#B3263D}.rvi .k{color:#077A57}
+.intro{max-width:880px;margin:0 auto;text-align:center;padding:40px 36px}.intro h1{font-size:36px;margin:0 0 6px;color:var(--sapph)}.intro .rules{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0;text-align:left}
+.intro .rules div{background:#fff;border:1px solid var(--g2);border-radius:16px;padding:14px}.intro .rules b{display:block;font-size:22px;color:var(--sapph)}.intro .rules span{font-size:13px;color:var(--g4)}
+.subbox{margin-top:12px;padding:12px 14px;border-radius:14px;background:linear-gradient(100deg,#EEF3FF,#F2FBFF);border:1px solid #D5E2FF;font-size:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+@media (max-width:900px){.auth,.exam,.tv,.res{grid-template-columns:1fr}.au-art{min-height:auto}.tnav{position:static}.intro .rules{grid-template-columns:1fr 1fr}#pv{padding:20px 14px}}
+</style>`);
+document.body.insertAdjacentHTML('beforeend',`<section id="pv"></section>
+<div class="modal" id="mAuth"><div class="box auth"><button class="ghost mclose" id="auX" aria-label="Закрити">✕</button>
+ <div class="au-art"><div class="rings"></div><h2>Віртуальна лабораторія ІСБ</h2><p>Вхід для студентів і викладачів Житомирської політехніки.</p>
+  <ul><li><i>✓</i>Реєстрація лише з університетською поштою @ztu.edu.ua</li><li><i>✓</i>Прогрес і здані роботи прив'язані до вашого акаунта</li><li><i>✓</i>Викладач бачить звіти і результати тесту</li></ul></div>
+ <div class="au-main" id="auMain"></div></div></div>
+<div class="modal" id="mAdm"><div class="box" id="admBox" style="max-width:980px"></div></div>`);
+$('header #btnHome').insertAdjacentHTML('beforebegin','<div id="acct"></div>');
+$('#mStart .form-side').insertAdjacentHTML('afterbegin','<button class="ghost mclose" id="stX" aria-label="Закрити">✕</button>');
+$('#stX').onclick=()=>{$('#mStart').classList.remove('on');showHome()};
+$('.homefoot').insertAdjacentHTML('beforebegin',`<div class="examrow"><div class="exam"><div><h2>Підсумковий тест</h2><p>50 питань за матеріалом усіх семи робіт. Одна спроба, 60 хвилин, оцінка за 100-бальною шкалою і ECTS.</p>
+ <div class="btns"><button class="pri" id="goTest">Пройти тест</button><button class="ghostw" id="goMy">Мій кабінет</button></div></div>
+ <div class="lv"><div><b>20</b><span>легких · 0,5 бала</span></div><div><b>20</b><span>середніх · 2 бали</span></div><div><b>10</b><span>складних · 5 балів</span></div></div></div></div>`);
+
+/* ---------- auth flow ---------- */
+function need(fn){if(isOk())return fn();PENDING=fn;openAuth()}
+function openAuth(mode){$('#mAuth').classList.add('on');renderAuth(mode||(USER&&!USER.emailVerified?'verify':USER&&!UNI.test(USER.email||'')?'wrong':'in'))}
+function closeAuth(){$('#mAuth').classList.remove('on')}
+$('#auX').onclick=()=>{closeAuth();PENDING=null};
+function renderAuth(mode){const M=$('#auMain');const tabs=`<div class="au-tabs"><button data-am="in" class="${mode==='in'?'on':''}">Вхід</button><button data-am="up" class="${mode==='up'?'on':''}">Реєстрація</button></div>`;
+  if(AUTHST==='fail'){M.innerHTML=`<h3 style="margin-top:4px">Немає з'єднання з сервером</h3><p class="note">Сервер авторизації недоступний. Перевірте інтернет і оновіть сторінку.</p><div class="actions"><button class="pri" onclick="location.reload()">Оновити сторінку</button></div>`;return}
+  if(mode==='in')M.innerHTML=tabs+`<div class="au-f"><label>Пошта<input id="auE" type="email" autocomplete="username" placeholder="прізвище@ztu.edu.ua"></label><label>Пароль<input id="auP" type="password" autocomplete="current-password"></label>
+    <div style="display:flex;justify-content:space-between;align-items:center"><button class="pri" id="auGo">Увійти</button><button class="au-link" id="auRs">Забули пароль?</button></div><div class="msg" id="auM"></div></div>`;
+  if(mode==='up')M.innerHTML=tabs+`<div class="au-f"><label>ПІБ<input id="auN" placeholder="Коваленко Олена Ігорівна"></label><label>Група<input id="auG" placeholder="КБ-22-1"></label>
+    <label>Університетська пошта<input id="auE" type="email" autocomplete="username" placeholder="прізвище@ztu.edu.ua"></label><div class="hint">Лише адреси @ztu.edu.ua. На пошту прийде лист для підтвердження.</div>
+    <label>Пароль<input id="auP" type="password" autocomplete="new-password" placeholder="щонайменше 8 символів"></label><label>Повторіть пароль<input id="auP2" type="password" autocomplete="new-password"></label>
+    <div><button class="pri" id="auGo">Зареєструватися</button></div><div class="msg" id="auM"></div></div>`;
+  if(mode==='reset')M.innerHTML=`<h3 style="margin:4px 40px 6px 0">Відновлення пароля</h3><p class="note">Надішлемо посилання для нового пароля на вашу пошту.</p><div class="au-f"><label>Пошта<input id="auE" type="email" placeholder="прізвище@ztu.edu.ua"></label>
+    <div style="display:flex;gap:10px"><button class="pri" id="auGo">Надіслати посилання</button><button id="auBk">Назад до входу</button></div><div class="msg" id="auM"></div></div>`;
+  if(mode==='verify')M.innerHTML=`<div class="au-mail">✉️</div><h3 style="margin:0 40px 6px 0">Підтвердіть пошту</h3><p>Ми надіслали лист на <b>${esc(USER&&USER.email)}</b>. Відкрийте його, натисніть посилання, потім поверніться сюди.</p><p class="note">Не бачите листа? Перевірте папку «Спам».</p>
+    <div class="actions"><button class="pri" id="auVf">Я підтвердив(ла) пошту</button><button id="auRe">Надіслати ще раз</button><button class="ghost" id="auOut">Вийти</button></div><div class="msg" id="auM"></div>`;
+  if(mode==='wrong')M.innerHTML=`<h3 style="margin:4px 40px 6px 0">Потрібна пошта @ztu.edu.ua</h3><p>Ви увійшли як <b>${esc(USER&&USER.email)}</b>. Лабораторія доступна лише з університетською поштою.</p><div class="actions"><button class="pri" id="auOut">Вийти і зареєструватися заново</button></div>`;
+  M.querySelectorAll('[data-am]').forEach(b=>b.onclick=()=>renderAuth(b.dataset.am));
+  const msg=(t,c='err')=>{const m=$('#auM');if(m){m.className='msg '+c;m.textContent=t}};
+  const busy=(b,on)=>{if(b){b.disabled=on;b.style.opacity=on?.6:1}};
+  const go=$('#auGo'),E=()=>($('#auE').value||'').trim().toLowerCase();
+  if(mode==='in'){go.onclick=async()=>{const e=E(),p=$('#auP').value;if(!e||!p)return msg('Введіть пошту і пароль.');busy(go,1);try{await API.signIn(e,p)}catch(x){msg(errTxt(x))}busy(go,0)};$('#auP').onkeydown=e=>{if(e.key==='Enter')go.click()};$('#auRs').onclick=()=>renderAuth('reset')}
+  if(mode==='up')go.onclick=async()=>{const n=$('#auN').value.trim().replace(/\s+/g,' '),g=$('#auG').value.trim().toUpperCase(),e=E(),p=$('#auP').value;
+    if(n.split(' ').length<2)return msg('Вкажіть прізвище та ім\'я.');if(!g)return msg('Вкажіть групу.');if(!UNI.test(e))return msg('Потрібна університетська пошта @ztu.edu.ua.');
+    if(p.length<8)return msg('Пароль закороткий: потрібно щонайменше 8 символів.');if(p!==$('#auP2').value)return msg('Паролі не збігаються.');
+    busy(go,1);try{await API.signUp(e,p,n,g);PROFILE={name:n,group:g};renderAuth('verify')}catch(x){msg(errTxt(x))}busy(go,0)};
+  if(mode==='reset'){go.onclick=async()=>{const e=E();if(!e)return msg('Введіть пошту.');busy(go,1);try{await API.reset(e);msg('Посилання надіслано. Перевірте пошту.','ok')}catch(x){msg(errTxt(x))}busy(go,0)};$('#auBk').onclick=()=>renderAuth('in')}
+  if(mode==='verify'){$('#auVf').onclick=async()=>{try{USER=await API.reload();if(USER.emailVerified){await onUser(USER)}else msg('Пошту ще не підтверджено. Натисніть посилання в листі.')}catch(x){msg(errTxt(x))}};
+    $('#auRe').onclick=async()=>{try{await API.resend();msg('Лист надіслано ще раз.','ok')}catch(x){msg(errTxt(x))}}}
+  if($('#auOut'))$('#auOut').onclick=async()=>{await API.signOut();renderAuth(mode==='wrong'?'up':'in')};
+  const f=M.querySelector('input');if(f)setTimeout(()=>f.focus(),50);
+}
+async function onUser(u){USER=u;PROFILE=null;
+  if(u){try{PROFILE=await API.getUser(u.uid)}catch(e){}if(!PROFILE)PROFILE={name:u.displayName||u.email,group:isAdm()?'викладач':''}}
+  AUTHST='ready';applyProfile();renderAcct();
+  if(u&&$('#mAuth').classList.contains('on')){if(isOk()){closeAuth();const f=PENDING;PENDING=null;f&&f()}else renderAuth(!u.emailVerified?'verify':'wrong')}
+  if(!u&&document.body.classList.contains('pv'))showHome();
+}
+function applyProfile(){if(!isOk()||!PROFILE)return;const st={name:PROFILE.name,group:PROFILE.group||''};
+  Object.entries(ST).forEach(([k,x])=>{if(x.student.name!==st.name||x.student.group!==st.group){x.student={...st};try{localStorage.setItem(LSK[k],JSON.stringify(x))}catch(e){}}});
+  $('#stName').value=st.name;$('#stGroup').value=st.group;$('#stName').readOnly=$('#stGroup').readOnly=true;
+}
+function renderAcct(){const A=$('#acct');if(AUTHST==='load'){A.innerHTML='';return}
+  document.body.classList.toggle('signed',isOk());
+  if(!USER||!isOk()){A.innerHTML=`<button class="sm" id="acIn" style="background:#fff;color:var(--navy);border:none">${USER?'Завершити вхід':'Увійти'}</button>`;$('#acIn').onclick=()=>openAuth();return}
+  A.innerHTML=`<button class="achip" id="acB"><span class="av">${esc(ini(PROFILE.name))}</span><span style="font-size:13.5px">${esc(PROFILE.name.split(' ').slice(0,2).join(' '))}${isAdm()?'<span class="tagadm">адмін</span>':''}</span></button>
+   <div class="amenu" id="acM"><div class="hd"><b>${esc(PROFILE.name)}</b><span>${esc(USER.email)}${PROFILE.group&&!isAdm()?' · '+esc(PROFILE.group):''}</span></div>
+   <button id="acMy">Мій кабінет</button>${isAdm()?'<button id="acAdm">Кабінет викладача</button>':''}<button id="acT">Підсумковий тест</button><button id="acOut" style="color:var(--err)">Вийти</button></div>`;
+  $('#acB').onclick=e=>{e.stopPropagation();$('#acM').classList.toggle('on')};
+  $('#acMy').onclick=openMy;$('#acT').onclick=openTest;if($('#acAdm'))$('#acAdm').onclick=openAdmin;
+  $('#acOut').onclick=async()=>{await API.signOut();showHome()};
+}
+document.addEventListener('click',()=>{const m=$('#acM');if(m)m.classList.remove('on')});
+async function authInit(){try{if(!window.__FBAPI)await API.load();API.onAuth(u=>onUser(u))}catch(e){AUTHST='fail';renderAcct();$('#acct').innerHTML='<span class="who" title="Сервер авторизації недоступний">офлайн</span>'}}
+
+/* ---------- views ---------- */
+function showPv(html){document.body.classList.remove('home');document.body.classList.add('pv');$('#mStart').classList.remove('on');$('#pv').innerHTML=html;scrollTo(0,0)}
+const loadingV=t=>`<div class="pcard" style="text-align:center;padding:60px"><div class="note">${t||'Завантаження…'}</div></div>`;
+{const sh=showHome;showHome=function(){clearInterval(window._tT);document.body.classList.remove('pv');sh()}}
+{const ol=openLab;openLab=function(n){need(()=>{clearInterval(window._tT);document.body.classList.remove('pv');ol(n);if(!Object.keys(S.done).length&&!S.welcomed)$('#mStart').classList.add('on')})}}
+{const bs=$('#btnStart').onclick;$('#btnStart').onclick=()=>{bs();if(S.student.name){S.welcomed=true;save()}}}
+$('#goLab1').onclick=()=>openLab(1);$('#btnHome').onclick=showHome;$('#goTest').onclick=openTest;$('#goMy').onclick=openMy;
+
+/* ---------- lab submission ---------- */
+function thumb(src,w=560){return new Promise(r=>{if(!src)return r(null);const i=new Image();i.onload=()=>{const k=Math.min(1,w/i.width),c=document.createElement('canvas');c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',.6))};i.onerror=()=>r(null);i.src=src})}
+{const or=openReport;openReport=function(){or();const a=$('#reportBox .actions');if(!a)return;
+  a.insertAdjacentHTML('afterend',`<div class="subbox" id="subBox"><b>Здача викладачу</b><span id="subSt" class="note">перевіряю…</span><button class="pri" id="rSub" style="margin-left:auto">Здати роботу</button></div>`);
+  $('#rSub').onclick=()=>need(submitLab);subStatus()};$('#btnReport').onclick=openReport}
+async function subStatus(){const el=$('#subSt');if(!el)return;if(!isOk()){el.textContent='увійдіть з поштою @ztu.edu.ua, щоб здати роботу';return}
+  try{const d=await API.getSub(USER.uid+'__lab'+CUR);el.innerHTML=d?`здано ${dtS(d.at)}${d.mark!=null&&d.mark!==''?` · оцінка викладача: <b>${esc(d.mark)}</b>`:' · ще не оцінено'}${d.comment?` · «${esc(d.comment)}»`:''}`:'ще не здано';if(d)$('#rSub').textContent='Здати повторно'}catch(e){el.textContent=errTxt(e)}}
+async function submitLab(){const b=$('#rSub'),el=$('#subSt');if(!b)return;const n=Object.keys(S.done).length,tot=STEPS.length;
+  if(n<tot&&!b.dataset.c){b.dataset.c=1;b.textContent=`Виконано ${n} з ${tot}. Здати все одно?`;setTimeout(()=>{if(b.isConnected){b.dataset.c='';b.textContent='Здати роботу'}},5000);return}
+  b.disabled=true;el.textContent='надсилаю…';
+  try{const d=labRep(),errs=Object.values(S.errors).reduce((a,c)=>a+c,0),mins=Math.round((Date.now()-S.started)/60000);
+    const shots=[];for(const [k,l] of d.shots){const t=await thumb(S.shots[k]);if(t)shots.push({l,src:t})}
+    const p={uid:USER.uid,email:USER.email,name:PROFILE.name,group:PROFILE.group||'',kind:'lab'+CUR,n:CUR,title:d.title,done:n,total:tot,errs,mins,
+      rows:d.rows.map(r=>({k:String(r[0]),v:String(r[1]??'')})),tables:d.tables.map(t=>({title:t.title,head:t.head.map(String),rows:t.rows.map(r=>({c:r.map(x=>String(x??''))}))})),
+      qa:STEPS.flatMap((s,i)=>s.q.map((q,k)=>({n:i+1,q,a:S.answers[i+'_'+k]||''}))),conc:S.answers.conc||'',shots,at:new Date().toISOString(),mark:null,comment:''};
+    if(JSON.stringify(p).length>900000)p.shots=[];
+    await API.putSub(USER.uid+'__lab'+CUR,p);b.textContent='Здано ✓';subStatus()}catch(e){el.textContent=errTxt(e)}b.disabled=false}
+
+/* ---------- final test ---------- */
+const PTS={e:.5,m:2,h:5},LVN={e:'Легке',m:'Середнє',h:'Складне'},TMIN=60,LET='АБВГ';
+let TS=null;
+const tKey=()=>'isb_test_'+(USER?USER.uid:'x');
+function rng(seed){let h=2166136261;for(const c of seed){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return()=>{h^=h<<13;h^=h>>>17;h^=h<<5;return (h>>>0)/4294967296}}
+function shuf(a,r){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function scoreOf(ans){const by={e:{ok:0,n:0,p:0},m:{ok:0,n:0,p:0},h:{ok:0,n:0,p:0}};let s=0;TQ.forEach((q,i)=>{const b=by[q.l];b.n++;if(ans[i]===q.a){b.ok++;b.p+=PTS[q.l];s+=PTS[q.l]}});return {score:s,by}}
+function openTest(){need(async()=>{showPv(loadingV());
+  if(!isAdm()){try{const ex=await API.getSub(USER.uid+'__test');if(ex)return testResult(ex)}catch(e){return showPv(`<div class="pcard">${esc(errTxt(e))}</div>`)}}
+  try{TS=JSON.parse(localStorage.getItem(tKey())||'null')}catch(e){TS=null}
+  if(TS&&TS.fin&&!isAdm())return finishTest(true);
+  if(TS&&!TS.fin)return renderTest();
+  showPv(`<div class="pcard intro"><h1>Підсумковий тест</h1><p class="note" style="font-size:16px">Інтегральні системи безпеки · ${esc(PROFILE.name)}${PROFILE.group&&!isAdm()?', група '+esc(PROFILE.group):''}</p>
+   <div class="rules"><div><b>50</b><span>питань: 20 легких, 20 середніх, 10 складних</span></div><div><b>100</b><span>балів: 0,5 / 2 / 5 за правильну відповідь</span></div><div><b>60 хв</b><span>після цього тест завершиться сам</span></div><div><b>1</b><span>спроба. Перездачу відкриває викладач</span></div></div>
+   <p>Можна пересуватися між питаннями й змінювати відповіді до завершення. Прогрес зберігається, якщо сторінка випадково закриється.</p>
+   ${isAdm()?'<p class="note">Ви адміністратор: результат не записується, це перегляд тесту очима студента.</p>':''}
+   <div class="actions" style="justify-content:center"><button class="pri" id="tGo" style="padding:13px 30px;font-size:17px">Почати тест</button><button id="tBack">Повернутися</button></div></div>`);
+  $('#tBack').onclick=showHome;
+  $('#tGo').onclick=()=>{const r=rng(USER.uid+'isb');const idx=l=>TQ.map((q,i)=>q.l===l?i:-1).filter(i=>i>=0);
+    TS={order:[...shuf(idx('e'),r),...shuf(idx('m'),r),...shuf(idx('h'),r)],perm:TQ.map(()=>shuf([0,1,2,3],r)),ans:{},start:Date.now(),cur:0};tSave();renderTest()}})}
+const tSave=()=>{try{localStorage.setItem(tKey(),JSON.stringify(TS))}catch(e){}};
+function renderTest(){const left=()=>TS.start+TMIN*60000-Date.now();
+  showPv(`<div class="tv"><aside class="pcard tnav"><div class="note">Залишилось часу</div><div class="timer" id="tTime">60:00</div>
+   <div class="note" id="tCnt"></div><div class="qgrid" id="tGrid"></div><div class="lgd"><span><i style="background:var(--mint)"></i>легке</span><span><i style="background:var(--cyan)"></i>середнє</span><span><i style="background:var(--violet)"></i>складне</span></div>
+   <button class="pri" id="tFin" style="width:100%;margin-top:16px">Завершити тест</button><div class="msg" id="tFm"></div></aside><section class="pcard qcard" id="tQ"></section></div>`);
+  const tick=()=>{const ms=left();if(ms<=0){clearInterval(window._tT);return finishTest()}const m=Math.floor(ms/60000),s=Math.floor(ms%60000/1000);const t=$('#tTime');if(!t)return clearInterval(window._tT);t.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');t.classList.toggle('low',ms<300000)};
+  clearInterval(window._tT);window._tT=setInterval(tick,1000);tick();
+  $('#tFin').onclick=()=>{const un=50-Object.keys(TS.ans).length,b=$('#tFin');if(!b.dataset.c){b.dataset.c=1;b.textContent='Так, завершити';const m=$('#tFm');m.className='msg hint';m.textContent=un?`Без відповіді: ${un}. Після завершення змінити відповіді не можна.`:'Після завершення змінити відповіді не можна.';return}finishTest()};
+  drawQ()}
+function drawQ(){const i=TS.cur,qi=TS.order[i],q=TQ[qi],per=TS.perm[qi];
+  $('#tGrid').innerHTML=TS.order.map((x,k)=>`<button data-g="${k}" class="${TQ[x].l} ${TS.ans[x]!=null?'ans':''} ${k===i?'cur':''}" aria-label="Питання ${k+1}">${k+1}</button>`).join('');
+  $('#tGrid').querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{TS.cur=+b.dataset.g;tSave();drawQ()});
+  $('#tCnt').textContent=`Відповіді: ${Object.keys(TS.ans).length} з 50`;
+  $('#tQ').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="qlv ${q.l}">${LVN[q.l]} · ${fmtN(PTS[q.l])} ${{e:'бала',m:'бали',h:'балів'}[q.l]}</span><span class="note">Питання ${i+1} з 50</span></div>
+   <div class="qtext">${esc(q.q)}</div><div class="opts">${per.map((o,k)=>`<button class="opt ${TS.ans[qi]===o?'sel':''}" data-o="${o}"><b>${LET[k]}</b><span>${esc(q.o[o])}</span></button>`).join('')}</div>
+   <div class="qnav"><button id="tPrev" ${i?'':'disabled'}>← Попереднє</button><button class="pri" id="tNext">${i<49?'Наступне →':'До завершення'}</button></div>`;
+  $('#tQ').querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{TS.ans[qi]=+b.dataset.o;tSave();drawQ()});
+  $('#tPrev').onclick=()=>{TS.cur--;tSave();drawQ()};$('#tNext').onclick=()=>{if(i<49){TS.cur++;tSave();drawQ()}else $('#tFin').focus()}}
+async function finishTest(resend){clearInterval(window._tT);const ans=TQ.map((_,i)=>TS.ans[i]!=null?TS.ans[i]:-1),{score,by}=scoreOf(ans),[L,N]=ects(score);
+  TS.fin=true;tSave();
+  const p={uid:USER.uid,email:USER.email,name:PROFILE.name,group:PROFILE.group||'',kind:'test',score,max:100,letter:L,nat:N,
+    by:{e:by.e,m:by.m,h:by.h},ans,mins:Math.round((Date.now()-TS.start)/60000),at:new Date().toISOString()};
+  if(isAdm()){localStorage.removeItem(tKey());return testResult(p,'Перегляд адміністратора: результат не записано.')}
+  showPv(loadingV('Надсилаю результат…'));
+  try{await API.putSub(USER.uid+'__test',p);localStorage.removeItem(tKey());testResult(p)}
+  catch(e){showPv(`<div class="pcard intro"><h1>Результат не надіслано</h1><p>${esc(errTxt(e))}</p><p class="note">Відповіді збережені на цьому пристрої.</p><div class="actions" style="justify-content:center"><button class="pri" id="tRe">Надіслати ще раз</button></div></div>`);$('#tRe').onclick=()=>finishTest(true)}}
+function testResult(p,note){const sc=p.score,deg=Math.round(sc*3.6),only={v:false};
+  const draw=()=>{$('#rvL').innerHTML=TQ.map((q,i)=>({q,i,a:p.ans[i]})).filter(x=>!only.v||x.a!==x.q.a).map(({q,i,a})=>`<div class="rvi ${a===q.a?'':'bad'}"><div class="q">${esc(q.q)} <span class="qlv ${q.l}" style="font-size:11.5px;padding:2px 8px;margin-left:6px">${fmtN(PTS[q.l])}</span></div>
+    ${a===q.a?`<div class="k">✓ ${esc(q.o[q.a])}</div>`:`<div class="y">✕ ${a>=0?esc(q.o[a]):'без відповіді'}</div><div class="k">Правильно: ${esc(q.o[q.a])}</div>`}<div class="x">${esc(q.x)}</div></div>`).join('')||'<p class="note">Помилок немає.</p>'};
+  showPv(`<div class="pvh"><div><h1>Результат тесту</h1><p>${esc(p.name)}${p.group?', група '+esc(p.group):''} · ${dtS(p.at)}${p.mins!=null?' · '+p.mins+' хв':''}</p></div><button id="rsBack">На головну</button></div>
+   ${note?`<div class="msg hint" style="display:block;margin:0 0 16px">${esc(note)}</div>`:''}
+   <div class="res"><aside class="pcard"><div class="ring" style="background:conic-gradient(var(--blue),var(--cyan) ${deg*.5}deg,var(--violet) ${deg}deg,var(--g1) ${deg}deg)"><div><b>${fmtN(sc)}</b><span>балів зі 100</span></div></div>
+    <div class="grade"><b>${p.letter}</b>${p.nat}</div><div class="lvres">${['e','m','h'].map(l=>`<div><span>${LVN[l]} (${p.by[l].ok} з ${p.by[l].n})</span><b>${fmtN(p.by[l].p)} б.</b></div>`).join('')}</div>
+    <button id="rsDl" style="width:100%;margin-top:14px">Завантажити результат</button><span class="note" id="rsN"></span></aside>
+    <section class="pcard"><div class="tbar"><b style="font-size:17px;color:var(--sapph)">Розбір відповідей</b><label class="note" style="margin-left:auto;display:flex;gap:6px;align-items:center"><input type="checkbox" id="rvO" style="width:auto">лише помилки</label></div><div class="rv" id="rvL"></div></section></div>`);
+  draw();$('#rvO').onchange=e=>{only.v=e.target.checked;draw()};$('#rsBack').onclick=showHome;
+  $('#rsDl').onclick=()=>{const h=`<!DOCTYPE html><html lang="uk"><head><meta charset="utf-8"><title>Результат тесту</title><style>body{font-family:Arial,sans-serif;max-width:800px;margin:30px auto;font-size:14px}h1{font-size:22px}.b{color:#B3263D}.g{color:#077A57}p{margin:4px 0}div{margin:10px 0;padding:8px 10px;border-left:3px solid #ccc}</style></head><body>
+   <h1>Підсумковий тест · Інтегральні системи безпеки</h1><p>${esc(p.name)}, група ${esc(p.group)} · ${esc(p.email)}</p><p>Дата: ${dtS(p.at)}</p><h2>${fmtN(sc)} балів зі 100 · ${p.letter} (${p.nat})</h2>
+   ${TQ.map((q,i)=>`<div><p><b>${i+1}. ${esc(q.q)}</b> (${fmtN(PTS[q.l])} б.)</p><p class="${p.ans[i]===q.a?'g':'b'}">Відповідь: ${p.ans[i]>=0?esc(q.o[p.ans[i]]):'—'}</p>${p.ans[i]===q.a?'':`<p class="g">Правильно: ${esc(q.o[q.a])}</p>`}</div>`).join('')}</body></html>`;
+   dlFile('Тест_ІСБ_'+(p.name||'').split(' ')[0]+'.html',h,$('#rsN'))}}
+
+/* ---------- student cabinet ---------- */
+function openMy(){need(async()=>{showPv(loadingV());let subs={};
+  try{const ids=[1,2,3,4,5,6,7].map(n=>'lab'+n).concat('test');const r=await Promise.all(ids.map(k=>API.getSub(USER.uid+'__'+k).catch(()=>null)));ids.forEach((k,i)=>subs[k]=r[i])}catch(e){}
+  const t=subs.test,labsDone=[1,2,3,4,5,6,7].filter(n=>subs['lab'+n]).length,marked=[1,2,3,4,5,6,7].filter(n=>subs['lab'+n]&&subs['lab'+n].mark!=null&&subs['lab'+n].mark!=='').length;
+  showPv(`<div class="pvh"><div style="display:flex;gap:16px;align-items:center"><span class="av" style="width:60px;height:60px;font-size:22px">${esc(ini(PROFILE.name))}</span><div><h1>${esc(PROFILE.name)}</h1><p>${esc(USER.email)}${PROFILE.group&&!isAdm()?' · група '+esc(PROFILE.group):''}</p></div></div>
+    <div style="display:flex;gap:10px">${isAdm()?'<button class="pri" id="myAdm">Кабінет викладача</button>':''}<button id="myBack">На головну</button></div></div>
+   <div class="kp"><div><b>${labsDone} / 7</b><span>лабораторних здано</span></div><div><b>${marked}</b><span>оцінено викладачем</span></div><div><b>${t?fmtN(t.score):'—'}</b><span>балів за тест${t?' · '+t.letter:''}</span></div>
+    <div><b>${[1,2,3,4,5,6,7].reduce((a,n)=>a+Object.keys(ST[n].done).length,0)}</b><span>кроків виконано на цьому пристрої</span></div></div>
+   <div class="pcard"><h3 style="margin:0 0 14px;color:var(--sapph)">Мої роботи</h3><div class="mylist">${LABS.map(l=>{const s=subs['lab'+l.n],loc=Object.keys(ST[l.n].done).length,tot=STEPSM[l.n].length;
+     return `<div class="myit"><span class="note">ЛР ${l.n} · ${l.sys}</span><h4>${esc(l.t)}</h4><div class="st"><span class="dot ${s?'ok':loc?'w':''}"></span>${s?`Здано ${dtS(s.at)} · ${s.done} з ${s.total} кроків`:loc?`У процесі: ${loc} з ${tot} кроків`:'Не розпочато'}</div>
+      ${s?`<div class="st">${s.mark!=null&&s.mark!==''?`Оцінка: <b>${esc(s.mark)}</b>`:'<span class="note">Очікує оцінки</span>'}${s.comment?`<span class="note">· «${esc(s.comment)}»</span>`:''}</div>`:''}
+      <div><button class="sm" data-ol="${l.n}">${s?'Відкрити':loc?'Продовжити':'Почати'}</button></div></div>`}).join('')}
+     <div class="myit" style="background:linear-gradient(150deg,#fff,#EEF3FF)"><span class="note">Підсумковий контроль</span><h4>Тест · 50 питань</h4><div class="st"><span class="dot ${t?'ok':''}"></span>${t?`${fmtN(t.score)} балів · ${t.letter} (${t.nat}) · ${dtS(t.at)}`:'Не пройдено'}</div><div><button class="sm ${t?'':'pri'}" id="myT">${t?'Переглянути розбір':'Пройти тест'}</button></div></div></div></div>`);
+  $('#myBack').onclick=showHome;if($('#myAdm'))$('#myAdm').onclick=openAdmin;$('#myT').onclick=openTest;
+  $('#pv').querySelectorAll('[data-ol]').forEach(b=>b.onclick=()=>openLab(+b.dataset.ol))})}
+
+/* ---------- admin cabinet ---------- */
+let ADM={us:[],ss:[],g:'',q:''};
+function openAdmin(){need(async()=>{if(!isAdm())return openMy();showPv(loadingV('Завантажую студентів і здачі…'));
+  try{const [us,ss]=await Promise.all([API.allUsers(),API.allSubs()]);ADM.us=us;ADM.ss=ss;renderAdmin()}catch(e){showPv(`<div class="pcard">${esc(errTxt(e))}</div>`)}})}
+function admRows(){const by={};ADM.us.filter(u=>!ADMINS.includes((u.email||'').toLowerCase())).forEach(u=>{by[u.id]={uid:u.id,name:u.name,group:(u.group||'').toUpperCase(),email:u.email,subs:{}}});
+  ADM.ss.forEach(s=>{const r=by[s.uid]||(by[s.uid]={uid:s.uid,name:s.name,group:(s.group||'').toUpperCase(),email:s.email,subs:{}});r.subs[s.kind]=s});
+  return Object.values(by).sort((a,b)=>(a.group+a.name).localeCompare(b.group+b.name,'uk'))}
+function renderAdmin(){const rows=admRows(),groups=[...new Set(rows.map(r=>r.group).filter(Boolean))].sort();
+  const vis=rows.filter(r=>(!ADM.g||r.group===ADM.g)&&(!ADM.q||(r.name+' '+r.email).toLowerCase().includes(ADM.q.toLowerCase())));
+  const tests=vis.map(r=>r.subs.test).filter(Boolean),labsN=vis.reduce((a,r)=>a+Object.keys(r.subs).filter(k=>k!=='test').length,0),toMark=vis.reduce((a,r)=>a+Object.entries(r.subs).filter(([k,s])=>k!=='test'&&(s.mark==null||s.mark==='')).length,0);
+  const cell=(r,k)=>{const s=r.subs[k];if(!s)return `<span class="cell no">—</span>`;
+    if(k==='test')return `<button class="cell mk" data-sub="${esc(s.uid+'__test')}">${fmtN(s.score)} <span class="badge2 b${s.letter}">${s.letter}</span></button>`;
+    const m=s.mark!=null&&s.mark!=='';return `<button class="cell ${m?'mk':s.done>=s.total?'ok':'part'}" data-sub="${esc(s.uid+'__'+k)}" title="${s.done} з ${s.total} кроків">${m?esc(s.mark):s.done+'/'+s.total}</button>`};
+  showPv(`<div class="pvh"><div><h1>Кабінет викладача</h1><p>Інтегральні системи безпеки · студенти, здані роботи і результати тесту</p></div><div style="display:flex;gap:10px"><button id="adR">Оновити</button><button id="adCsv">Експорт у CSV</button><button id="adBack">На головну</button></div></div>
+   <div class="kp"><div><b>${vis.length}</b><span>студентів${ADM.g?' у групі '+esc(ADM.g):''}</span></div><div><b>${labsN}</b><span>лабораторних здано</span></div><div><b>${toMark}</b><span>чекають на оцінку</span></div>
+    <div><b>${tests.length}</b><span>пройшли тест</span></div><div><b>${tests.length?fmtN(tests.reduce((a,t)=>a+t.score,0)/tests.length):'—'}</b><span>середній бал тесту</span></div></div>
+   <div class="pcard"><div class="tbar"><select id="adG"><option value="">Усі групи</option>${groups.map(g=>`<option ${g===ADM.g?'selected':''}>${esc(g)}</option>`).join('')}</select><input id="adQ" placeholder="Пошук за ПІБ або поштою" value="${esc(ADM.q)}">
+    <span class="note" style="margin-left:auto">Клітинка: кроки виконано / усього; синя — оцінено. Натисніть, щоб відкрити звіт.</span></div>
+    <div style="overflow:auto"><table class="gt"><tr><th>Студент</th><th>Група</th>${[1,2,3,4,5,6,7].map(n=>`<th class="c">ЛР ${n}</th>`).join('')}<th class="c">Тест</th></tr>
+    ${vis.map(r=>`<tr><td><b>${esc(r.name||'—')}</b><div class="note">${esc(r.email||'')}</div></td><td>${esc(r.group||'—')}</td>${[1,2,3,4,5,6,7].map(n=>`<td class="c">${cell(r,'lab'+n)}</td>`).join('')}<td class="c">${cell(r,'test')}</td></tr>`).join('')||'<tr><td colspan="10" class="note" style="padding:24px">Ще немає зареєстрованих студентів.</td></tr>'}</table></div></div>`);
+  $('#adBack').onclick=showHome;$('#adR').onclick=openAdmin;
+  $('#adG').onchange=e=>{ADM.g=e.target.value;renderAdmin()};$('#adQ').oninput=e=>{ADM.q=e.target.value;clearTimeout(window._adq);window._adq=setTimeout(()=>{renderAdmin();const q=$('#adQ');q.focus();q.setSelectionRange(q.value.length,q.value.length)},300)};
+  $('#pv').querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>admSub(b.dataset.sub));
+  $('#adCsv').onclick=()=>{const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const lines=[['ПІБ','Група','Пошта',...[1,2,3,4,5,6,7].map(n=>'ЛР'+n),'Тест, бали','ECTS'].map(q).join(';'),
+    ...vis.map(r=>[r.name,r.group,r.email,...[1,2,3,4,5,6,7].map(n=>{const s=r.subs['lab'+n];return !s?'':(s.mark!=null&&s.mark!==''?s.mark:'здано '+s.done+'/'+s.total)}),r.subs.test?fmtN(r.subs.test.score):'',r.subs.test?r.subs.test.letter:''].map(q).join(';'))];
+    dlFile('ІСБ_успішність'+(ADM.g?'_'+ADM.g:'')+'.csv',new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv'}))}}
+function admSub(id){const s=ADM.ss.find(x=>x.uid+'__'+x.kind===id);if(!s)return;const B=$('#admBox');$('#mAdm').classList.add('on');
+  const head=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><h2 style="margin:0">${s.kind==='test'?'Підсумковий тест':'ЛР № '+s.n+'. '+esc(s.title)}</h2><p class="note" style="margin:4px 0 0">${esc(s.name)}, група ${esc(s.group)} · ${esc(s.email)} · здано ${dtS(s.at)}</p></div><button class="ghost" id="amX" aria-label="Закрити">✕</button></div>`;
+  if(s.kind==='test'){B.innerHTML=head+`<div class="kp" style="margin-top:16px"><div><b>${fmtN(s.score)}</b><span>балів зі 100</span></div><div><b>${s.letter}</b><span>${s.nat}</span></div>${['e','m','h'].map(l=>`<div><b>${s.by[l].ok} / ${s.by[l].n}</b><span>${LVN[l].toLowerCase()} · ${fmtN(s.by[l].p)} б.</span></div>`).join('')}</div>
+     <div class="rv">${TQ.map((q,i)=>{const a=s.ans[i];return `<div class="rvi ${a===q.a?'':'bad'}"><div class="q">${i+1}. ${esc(q.q)}</div>${a===q.a?`<div class="k">✓ ${esc(q.o[q.a])}</div>`:`<div class="y">✕ ${a>=0?esc(q.o[a]):'без відповіді'}</div><div class="k">Правильно: ${esc(q.o[q.a])}</div>`}</div>`}).join('')}</div>
+     <div class="subbox"><span>Студент має одну спробу. Щоб дозволити перездачу, видаліть цей результат.</span><button id="amDel" style="margin-left:auto;color:var(--err)">Дозволити перездачу</button><span class="note" id="amN"></span></div>`}
+  else B.innerHTML=head+`<p class="note">Виконано кроків: ${s.done} з ${s.total} · помилок під час перевірок: ${s.errs} · час: ${s.mins} хв</p>
+     <p class="ttl">Параметри</p><table class="tbl">${s.rows.map(r=>`<tr><th style="width:42%">${esc(r.k)}</th><td>${esc(r.v)}</td></tr>`).join('')}</table>
+     ${s.tables.map(t=>`<p class="note" style="margin:10px 0 2px">${esc(t.title)}</p><table class="tbl"><tr>${t.head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr>${t.rows.map(r=>`<tr>${r.c.map(x=>`<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</table>`).join('')}
+     <p class="ttl">Відповіді на запитання</p>${s.qa.map(x=>`<p style="margin:4px 0"><b>Крок ${x.n}. ${esc(x.q)}</b><br>${esc(x.a)||'<span class="note">немає відповіді</span>'}</p>`).join('')}
+     ${s.shots&&s.shots.length?`<p class="ttl">Скриншоти</p><div class="ftpfiles">${s.shots.map(x=>`<figure><img src="${x.src}"><figcaption>${esc(x.l)}</figcaption></figure>`).join('')}</div>`:''}
+     <p class="ttl">Висновки</p><p>${esc(s.conc)||'<span class="note">немає</span>'}</p>
+     <div class="subbox" style="align-items:flex-end"><label class="note" style="display:grid;gap:4px">Оцінка<input id="amM" value="${esc(s.mark??'')}" style="width:110px" placeholder="напр. 5"></label><label class="note" style="display:grid;gap:4px;flex:1;min-width:220px">Коментар студенту<input id="amC" value="${esc(s.comment||'')}" placeholder="що виправити або похвалити"></label>
+      <button class="pri" id="amS">Зберегти оцінку</button><button id="amDel" style="color:var(--err)">Повернути на доопрацювання</button><span class="note" id="amN" style="flex-basis:100%"></span></div>`;
+  $('#amX').onclick=()=>$('#mAdm').classList.remove('on');
+  if($('#amS'))$('#amS').onclick=async()=>{const d={mark:$('#amM').value.trim(),comment:$('#amC').value.trim(),markedAt:new Date().toISOString()};try{await API.patchSub(id,d);Object.assign(s,d);$('#amN').textContent='Збережено.';renderAdmin();$('#mAdm').classList.add('on')}catch(e){$('#amN').textContent=errTxt(e)}};
+  $('#amDel').onclick=async()=>{const b=$('#amDel');if(!b.dataset.c){b.dataset.c=1;b.textContent='Натисніть ще раз, щоб видалити';return}
+    try{await API.delSub(id);ADM.ss=ADM.ss.filter(x=>x!==s);$('#mAdm').classList.remove('on');renderAdmin()}catch(e){$('#amN').textContent=errTxt(e)}};
+}
+
 /* ======================= START ======================= */
 function start(){renderSteps();renderTask();renderTheory();renderTabs();renderAll();requestAnimationFrame(frame);setInterval(renderStand,2000);
-  showHome();}
+  showHome();authInit();}
 $('#btnStart').onclick=()=>{const n=$('#stName').value.trim(),g=$('#stGroup').value.trim();if(!n||!g){const m=$('#stMsg');m.className='msg err';m.textContent='Вкажіть ПІБ і групу.';return}S.student={name:n,group:g};S.started=Date.now();log('Початок роботи');save();$('#mStart').classList.remove('on');renderSteps()};
 $('#btnReset').onclick=()=>{if($('#btnReset').dataset.c){const st=S.student;S=CUR===1?fresh():LABMOD[CUR].fresh();S.student=st;ST[CUR]=S;save();location.hash='';$('#btnReset').dataset.c='';$('#btnReset').textContent='Почати з початку';hintLvl=0;renderSteps();renderTask();renderTheory();renderTabs();renderAll();return}$('#btnReset').dataset.c=1;$('#btnReset').textContent='Натисніть ще раз для підтвердження';setTimeout(()=>{$('#btnReset').dataset.c='';$('#btnReset').textContent='Почати з початку'},3000)};
 start();
