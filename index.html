@@ -2901,9 +2901,9 @@ function renderAcct(){const A=$('#acct');if(AUTHST==='load'){A.innerHTML='';retu
   if(!USER||!isOk()){A.innerHTML=`<button class="sm" id="acIn" style="background:#fff;color:var(--navy);border:none">${USER?'Завершити вхід':'Увійти'}</button>`;$('#acIn').onclick=()=>openAuth();return}
   A.innerHTML=`<button class="achip" id="acB"><span class="av">${esc(ini(PROFILE.name))}</span><span style="font-size:13.5px">${esc(PROFILE.name.split(' ').slice(0,2).join(' '))}${isAdm()?'<span class="tagadm">адмін</span>':''}</span></button>
    <div class="amenu" id="acM"><div class="hd"><b>${esc(PROFILE.name)}</b><span>${esc(USER.email)}${PROFILE.group&&!isAdm()?' · '+esc(PROFILE.group):''}</span></div>
-   <button id="acMy">Мій кабінет</button>${isAdm()?'<button id="acAdm">Кабінет викладача</button>':''}<button id="acT">Підсумковий тест</button><button id="acOut" style="color:var(--err)">Вийти</button></div>`;
+   ${isAdm()?'<button id="acAdm">Кабінет викладача</button><button id="acT">Переглянути тест</button>':'<button id="acMy">Мій кабінет</button><button id="acT">Підсумковий тест</button>'}<button id="acOut" style="color:var(--err)">Вийти</button></div>`;
   $('#acB').onclick=e=>{e.stopPropagation();$('#acM').classList.toggle('on')};
-  $('#acMy').onclick=openMy;$('#acT').onclick=openTest;if($('#acAdm'))$('#acAdm').onclick=openAdmin;
+  if($('#acMy'))$('#acMy').onclick=openMy;$('#acT').onclick=openTest;if($('#acAdm'))$('#acAdm').onclick=openAdmin;
   $('#acOut').onclick=async()=>{await API.signOut();showHome()};
 }
 document.addEventListener('click',()=>{const m=$('#acM');if(m)m.classList.remove('on')});
@@ -3020,7 +3020,7 @@ function testResult(p,note){const sc=p.score,deg=Math.round(sc*3.6),only={v:fals
    dlFile('Тест_ІСБ_'+(p.name||'').split(' ')[0]+'.html',h,$('#rsN'))}}
 
 /* ---------- student cabinet ---------- */
-function openMy(){need(async()=>{showPv(loadingV());let subs={};
+function openMy(){need(async()=>{if(isAdm())return openAdmin();showPv(loadingV());let subs={};
   try{const ids=[1,2,3,4,5,6,7].map(n=>'lab'+n).concat('test');const r=await Promise.all(ids.map(k=>API.getSub(USER.uid+'__'+k).catch(()=>null)));ids.forEach((k,i)=>subs[k]=r[i])}catch(e){}
   const t=subs.test,labsDone=[1,2,3,4,5,6,7].filter(n=>subs['lab'+n]).length,marked=[1,2,3,4,5,6,7].filter(n=>subs['lab'+n]&&subs['lab'+n].mark!=null&&subs['lab'+n].mark!=='').length;
   showPv(`<div class="pvh"><div style="display:flex;gap:16px;align-items:center"><span class="av" style="width:60px;height:60px;font-size:22px">${esc(ini(PROFILE.name))}</span><div><h1>${esc(PROFILE.name)}</h1><p>${esc(USER.email)}${PROFILE.group&&!isAdm()?' · група '+esc(PROFILE.group):''}</p></div></div>
@@ -3048,19 +3048,53 @@ function renderAdmin(){const rows=admRows(),groups=[...new Set(rows.map(r=>r.gro
   const cell=(r,k)=>{const s=r.subs[k];if(!s)return `<span class="cell no">—</span>`;
     if(k==='test')return `<button class="cell mk" data-sub="${esc(s.uid+'__test')}">${fmtN(s.score)} <span class="badge2 b${s.letter}">${s.letter}</span></button>`;
     const m=s.mark!=null&&s.mark!=='';return `<button class="cell ${m?'mk':s.done>=s.total?'ok':'part'}" data-sub="${esc(s.uid+'__'+k)}" title="${s.done} з ${s.total} кроків">${m?esc(s.mark):s.done+'/'+s.total}</button>`};
-  showPv(`<div class="pvh"><div><h1>Кабінет викладача</h1><p>Інтегральні системи безпеки · студенти, здані роботи і результати тесту</p></div><div style="display:flex;gap:10px"><button id="adR">Оновити</button><button id="adCsv">Експорт у CSV</button><button id="adBack">На головну</button></div></div>
+  showPv(`<div class="pvh"><div><h1>Кабінет викладача</h1><p>Інтегральні системи безпеки · студенти, здані роботи і результати тесту</p></div><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="pri" id="adVid">Сформувати відомість</button><button class="pri" id="adRep">Звіт</button><button id="adCsv">CSV</button><button id="adR">Оновити</button><button id="adBack">На головну</button><span class="note" id="adN" style="flex-basis:100%;text-align:right"></span></div></div>
    <div class="kp"><div><b>${vis.length}</b><span>студентів${ADM.g?' у групі '+esc(ADM.g):''}</span></div><div><b>${labsN}</b><span>лабораторних здано</span></div><div><b>${toMark}</b><span>чекають на оцінку</span></div>
     <div><b>${tests.length}</b><span>пройшли тест</span></div><div><b>${tests.length?fmtN(tests.reduce((a,t)=>a+t.score,0)/tests.length):'—'}</b><span>середній бал тесту</span></div></div>
    <div class="pcard"><div class="tbar"><select id="adG"><option value="">Усі групи</option>${groups.map(g=>`<option ${g===ADM.g?'selected':''}>${esc(g)}</option>`).join('')}</select><input id="adQ" placeholder="Пошук за ПІБ або поштою" value="${esc(ADM.q)}">
     <span class="note" style="margin-left:auto">Клітинка: кроки виконано / усього; синя — оцінено. Натисніть, щоб відкрити звіт.</span></div>
     <div style="overflow:auto"><table class="gt"><tr><th>Студент</th><th>Група</th>${[1,2,3,4,5,6,7].map(n=>`<th class="c">ЛР ${n}</th>`).join('')}<th class="c">Тест</th></tr>
     ${vis.map(r=>`<tr><td><b>${esc(r.name||'—')}</b><div class="note">${esc(r.email||'')}</div></td><td>${esc(r.group||'—')}</td>${[1,2,3,4,5,6,7].map(n=>`<td class="c">${cell(r,'lab'+n)}</td>`).join('')}<td class="c">${cell(r,'test')}</td></tr>`).join('')||'<tr><td colspan="10" class="note" style="padding:24px">Ще немає зареєстрованих студентів.</td></tr>'}</table></div></div>`);
-  $('#adBack').onclick=showHome;$('#adR').onclick=openAdmin;
+  $('#adBack').onclick=showHome;$('#adR').onclick=openAdmin;$('#adVid').onclick=()=>admDoc('test');$('#adRep').onclick=()=>admDoc('all');
   $('#adG').onchange=e=>{ADM.g=e.target.value;renderAdmin()};$('#adQ').oninput=e=>{ADM.q=e.target.value;clearTimeout(window._adq);window._adq=setTimeout(()=>{renderAdmin();const q=$('#adQ');q.focus();q.setSelectionRange(q.value.length,q.value.length)},300)};
   $('#pv').querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>admSub(b.dataset.sub));
   $('#adCsv').onclick=()=>{const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const lines=[['ПІБ','Група','Пошта',...[1,2,3,4,5,6,7].map(n=>'ЛР'+n),'Тест, бали','ECTS'].map(q).join(';'),
     ...vis.map(r=>[r.name,r.group,r.email,...[1,2,3,4,5,6,7].map(n=>{const s=r.subs['lab'+n];return !s?'':(s.mark!=null&&s.mark!==''?s.mark:'здано '+s.done+'/'+s.total)}),r.subs.test?fmtN(r.subs.test.score):'',r.subs.test?r.subs.test.letter:''].map(q).join(';'))];
     dlFile('ІСБ_успішність'+(ADM.g?'_'+ADM.g:'')+'.csv',new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv'}))}}
+/* ---------- admin documents: відомість (тест) і звіт (усі роботи) ---------- */
+function admVis(){return admRows().filter(r=>(!ADM.g||r.group===ADM.g)&&(!ADM.q||(r.name+' '+r.email).toLowerCase().includes(ADM.q.toLowerCase())))}
+async function admDoc(kind){const note=$('#adN');if(!window.docx){note.textContent='Бібліотека Word не завантажилась. Оновіть сторінку.';return}
+  const {Document,Packer,Paragraph,TextRun,Table,TableRow,TableCell,WidthType,AlignmentType,PageOrientation,VerticalAlign}=docx;
+  const vis=admVis(),today=new Date().toLocaleDateString('uk-UA'),grp=ADM.g||'усі групи',F='Times New Roman';
+  const P=(t,o={})=>new Paragraph({alignment:o.c?AlignmentType.CENTER:o.r?AlignmentType.RIGHT:AlignmentType.LEFT,spacing:{after:o.after??60},children:[new TextRun({text:t,bold:o.b,size:o.s||24,font:F,allCaps:o.caps})]});
+  const C=(t,o={})=>new TableCell({verticalAlign:VerticalAlign.CENTER,shading:o.h?{fill:'E8EFFF'}:undefined,margins:{top:40,bottom:40,left:70,right:70},
+    children:[new Paragraph({alignment:o.l?AlignmentType.LEFT:AlignmentType.CENTER,children:[new TextRun({text:String(t??''),bold:o.h||o.b,size:o.s||22,font:F})]})]});
+  const T=(head,rows,widths)=>new Table({width:{size:100,type:WidthType.PERCENTAGE},columnWidths:widths,rows:[new TableRow({tableHeader:true,children:head.map((h,i)=>C(h,{h:1,s:20}))}),...rows.map(r=>new TableRow({children:r.map((x,i)=>C(x,{l:i===1}))}))]});
+  const hdr=[P('Міністерство освіти і науки України',{c:1}),P('Державний університет «Житомирська політехніка»',{c:1,b:1}),P("Факультет інформаційно-комп'ютерних технологій",{c:1}),P("Кафедра комп'ютерних технологій у медицині та телекомунікаціях",{c:1,after:240})];
+  const sign=[P('',{after:200}),P('Викладач ______________________ '+((PROFILE&&PROFILE.name)||''),{after:120}),P('Дата формування: '+today)];
+  let children,orient,file;
+  if(kind==='test'){
+    const rows=vis.map((r,i)=>{const t=r.subs.test;return [i+1,r.name||'—',...(ADM.g?[]:[r.group||'—']),t?fmtN(t.score):'не з\'явився',t?t.letter:'—',t?t.nat:'—',t?new Date(t.at).toLocaleDateString('uk-UA'):'—']});
+    const tt=vis.map(r=>r.subs.test).filter(Boolean),pass=tt.filter(t=>t.score>=60).length;
+    children=[...hdr,P('Відомість',{c:1,b:1,s:30,caps:1,after:40}),P('результатів підсумкового тестування',{c:1,b:1,after:200}),
+      P('Дисципліна: «Інтегральні системи безпеки»'),P('Група: '+grp),P('Форма контролю: підсумковий тест (50 питань, 100 балів)',{after:200}),
+      T(['№','Прізвище, ім\'я, по батькові',...(ADM.g?[]:['Група']),'Бали (зі 100)','Оцінка ECTS','Національна оцінка','Дата'],rows,ADM.g?[500,3800,1300,1100,1700,1200]:[450,3300,1000,1200,1000,1600,1100]),
+      P('',{after:120}),P(`Усього студентів: ${vis.length}. Склали тест: ${tt.length}. Позитивних оцінок (60+): ${pass}. Незадовільних: ${tt.length-pass}. Не з'явилися: ${vis.length-tt.length}.`),
+      P('Середній бал: '+(tt.length?fmtN(tt.reduce((a,t)=>a+t.score,0)/tt.length):'—')),...sign];
+    orient=PageOrientation.PORTRAIT;file='Відомість_тест_ІСБ_'+(ADM.g||'усі')+'.docx'}
+  else{
+    const cell=s=>!s?'—':(s.mark!=null&&s.mark!==''?String(s.mark):'здано');
+    const rows=vis.map((r,i)=>{const t=r.subs.test,n=[1,2,3,4,5,6,7].filter(k=>r.subs['lab'+k]).length;return [i+1,r.name||'—',r.group||'—',...[1,2,3,4,5,6,7].map(k=>cell(r.subs['lab'+k])),n+' / 7',t?fmtN(t.score):'—',t?t.letter:'—']});
+    rows.push(['','Здано робіт','',...[1,2,3,4,5,6,7].map(k=>vis.filter(r=>r.subs['lab'+k]).length),'',vis.filter(r=>r.subs.test).length,'']);
+    const all7=vis.filter(r=>[1,2,3,4,5,6,7].every(k=>r.subs['lab'+k])).length,tt=vis.map(r=>r.subs.test).filter(Boolean);
+    children=[...hdr,P('Звіт',{c:1,b:1,s:30,caps:1,after:40}),P('про виконання лабораторних робіт і підсумкового тестування',{c:1,b:1,after:200}),
+      P('Дисципліна: «Інтегральні системи безпеки»'),P('Група: '+grp,{after:200}),
+      T(['№','ПІБ студента','Група',...[1,2,3,4,5,6,7].map(k=>'ЛР '+k),'Здано ЛР','Тест, бали','ECTS'],rows,[400,3000,1000,...Array(7).fill(750),900,900,700]),
+      P('',{after:120}),P('У клітинках ЛР: оцінка викладача, «здано» — роботу здано, але ще не оцінено, «—» — не здано.',{s:20}),
+      P(`Усього студентів: ${vis.length}. Здали всі 7 робіт: ${all7}. Пройшли тест: ${tt.length}. Середній бал тесту: ${tt.length?fmtN(tt.reduce((a,t)=>a+t.score,0)/tt.length):'—'}.`),...sign];
+    orient=PageOrientation.LANDSCAPE;file='Звіт_ІСБ_'+(ADM.g||'усі')+'.docx'}
+  const doc=new Document({sections:[{properties:{page:{size:{orientation:orient},margin:{top:1000,bottom:1000,left:1100,right:900}}},children}]});
+  note.textContent='Формую…';const blob=await Packer.toBlob(doc);await dlFile(file,blob,note)}
 function admSub(id){const s=ADM.ss.find(x=>x.uid+'__'+x.kind===id);if(!s)return;const B=$('#admBox');$('#mAdm').classList.add('on');
   const head=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><h2 style="margin:0">${s.kind==='test'?'Підсумковий тест':'ЛР № '+s.n+'. '+esc(s.title)}</h2><p class="note" style="margin:4px 0 0">${esc(s.name)}, група ${esc(s.group)} · ${esc(s.email)} · здано ${dtS(s.at)}</p></div><button class="ghost" id="amX" aria-label="Закрити">✕</button></div>`;
   if(s.kind==='test'){B.innerHTML=head+`<div class="kp" style="margin-top:16px"><div><b>${fmtN(s.score)}</b><span>балів зі 100</span></div><div><b>${s.letter}</b><span>${s.nat}</span></div>${['e','m','h'].map(l=>`<div><b>${s.by[l].ok} / ${s.by[l].n}</b><span>${LVN[l].toLowerCase()} · ${fmtN(s.by[l].p)} б.</span></div>`).join('')}</div>
