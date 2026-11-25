@@ -2772,7 +2772,7 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 body.pv #pv{display:block} body.pv #home,body.pv .wrap{display:none!important} body.pv #btnReport,body.pv #btnTheory,body.pv .prog,body.pv .labname{visibility:hidden}
 .welcome{position:relative}.mclose{position:absolute;right:12px;top:10px;z-index:5;font-size:20px;line-height:1;width:38px;height:38px;padding:0;border-radius:50%;color:var(--g4)}
 .mclose:hover{background:var(--g1)}
-#acct{position:relative;margin-left:auto}header button{white-space:nowrap;transition-property:background,color,border-color,box-shadow,transform}.achip{white-space:nowrap}body.signed #whoami{display:none}header{z-index:55!important}.modal{top:66px!important}.modal .box{max-height:calc(100vh - 106px)!important}.mfloat{position:fixed;right:22px;top:80px;z-index:70;display:flex;align-items:center;gap:8px;background:#fff;border:none;border-radius:30px;padding:9px 16px 9px 14px;font-size:18px;line-height:1;color:var(--sapph);box-shadow:0 10px 30px -8px rgba(10,31,77,.55)}.mfloat span{font-size:11.5px;font-weight:700;color:var(--g4);border:1px solid var(--g2);border-radius:6px;padding:2px 5px}.mfloat:hover{color:var(--blue)}header .logo{cursor:pointer;border-radius:12px;transition:opacity .2s}header .logo:hover{opacity:.85}body.home #btnHome,body.home #acIn{display:none}#acct+#btnHome{margin-left:0}
+#acct{position:relative;margin-left:auto}header button{white-space:nowrap;transition-property:background,color,border-color,box-shadow,transform}.achip{white-space:nowrap}body.signed #whoami{display:none}header{z-index:55!important}.modal{top:66px!important}.modal .box{max-height:calc(100vh - 106px)!important}.mfloat{position:fixed;right:22px;top:80px;z-index:70;display:flex;align-items:center;gap:8px;background:#fff;border:none;border-radius:30px;padding:9px 16px 9px 14px;font-size:18px;line-height:1;color:var(--sapph);box-shadow:0 10px 30px -8px rgba(10,31,77,.55)}.mfloat span{font-size:11.5px;font-weight:700;color:var(--g4);border:1px solid var(--g2);border-radius:6px;padding:2px 5px}.mfloat:hover{color:var(--blue)}.trs{display:grid;gap:6px;margin-top:14px}.trs button{display:grid;grid-template-columns:1fr auto;text-align:left;border-radius:12px;padding:8px 12px;font-size:13.5px}.trs button small{grid-column:1/3;color:var(--g4);font-size:12px}.trs button.on{border-color:var(--blue);background:#EEF3FF}header .logo{cursor:pointer;border-radius:12px;transition:opacity .2s}header .logo:hover{opacity:.85}body.home #btnHome,body.home #acIn{display:none}#acct+#btnHome{margin-left:0}
 .achip{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:30px;padding:4px 14px 4px 4px}
 .achip:hover{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.4)}
 .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12.5px;background:linear-gradient(135deg,var(--cyan),var(--violet));color:#fff;flex:none}
@@ -2924,7 +2924,7 @@ function renderGrid(){const ok=isOk(),adm=isAdm(),ns=nSub(),tOpen=adm||ns>=7||!!
   const cards=LABS.map(l=>{const st=ST[l.n],d=Object.keys(st.done).length,tot=STEPSM[l.n].length,sb=MYSUBS['lab'+l.n];
     const foot=!ok?'<span class="lockt">Доступно після реєстрації</span>':sb?`<button class="pri">Відкрити</button><span class="donechip">Здано${sb.mark!=null&&sb.mark!==''?' · '+esc(sb.mark):''}</span>`:`<button class="pri">${d?'Продовжити':'Почати'}</button><span class="note">${d} з ${tot} кроків</span>`;
     return `<div class="lcard ${ok?'live':'locked'}" style="--c1:${l.c}" ${ok?`data-open="${l.n}" tabindex="0"`:''}><div class="ph"><img src="img/${l.img}.webp" alt=""></div><div class="num">${String(l.n).padStart(2,'0')}</div><span class="sys">${l.sys}</span><h3>${l.t}</h3><p>${l.p}</p><div class="foot">${foot}</div></div>`});
-  const tf=!ok?'<span class="lockt">Доступно після реєстрації</span>':t?`<button class="pri">Результат</button><span class="donechip">${fmtN(t.score)} б. · ${t.letter}</span>`:tOpen?'<button class="pri">Пройти тест</button><span class="note">50 питань · 60 хв</span>'
+  const tf=!ok?'<span class="lockt">Доступно після реєстрації</span>':t?`<button class="pri">Результат</button><span class="donechip">${fmtN(t.score)} б. · ${t.letter}</span><span class="note">спроб ${normT(t).attempts} з ${TMAX}</span>`:tOpen?'<button class="pri">Пройти тест</button><span class="note">50 питань · 60 хв</span>'
     :`<div style="flex:1"><span class="lockt">Відкриється після здачі всіх 7 робіт</span><div class="tprog"><i style="width:${ns/7*100}%"></i></div><span class="note">здано ${ns} з 7</span></div>`;
   cards.push(`<div class="lcard exam8 ${ok&&tOpen?'live':'locked'}" style="--c1:rgba(123,97,255,.35)" ${ok&&tOpen?'data-test="1" tabindex="0"':''}><div class="ph">${TESTICO}</div><div class="num">08</div><span class="sys">Підсумковий контроль</span><h3>Підсумковий тест</h3><p>50 питань за матеріалом семи робіт: 20 легких, 20 середніх і 10 складних. 60 хвилин, одна спроба, оцінка за 100-бальною шкалою та ECTS.</p><div class="foot">${tf}</div></div>`);
   $('#lgrid').innerHTML=cards.join('');
@@ -2964,20 +2964,25 @@ const tKey=()=>'isb_test_'+(USER?USER.uid:'x');
 function rng(seed){let h=2166136261;for(const c of seed){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return()=>{h^=h<<13;h^=h>>>17;h^=h<<5;return (h>>>0)/4294967296}}
 function shuf(a,r){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function scoreOf(ans){const by={e:{ok:0,n:0,p:0},m:{ok:0,n:0,p:0},h:{ok:0,n:0,p:0}};let s=0;TQ.forEach((q,i)=>{const b=by[q.l];b.n++;if(ans[i]===q.a){b.ok++;b.p+=PTS[q.l];s+=PTS[q.l]}});return {score:s,by}}
-function openTest(){need(async()=>{showPv(loadingV());
-  if(!isAdm()){try{const ex=await API.getSub(USER.uid+'__test');if(ex)return testResult(ex)}catch(e){return showPv(`<div class="pcard">${esc(errTxt(e))}</div>`)}
-    await loadMySubs();if(nSub()<7){showPv(`<div class="pcard intro"><h1>Тест ще закритий</h1><p>Підсумковий тест відкривається після здачі всіх семи лабораторних робіт викладачу. Здано: <b>${nSub()} з 7</b>.</p><div class="actions" style="justify-content:center"><button class="pri" id="tMy">Мій кабінет</button><button id="tBk">На головну</button></div></div>`);$('#tMy').onclick=openMy;$('#tBk').onclick=showHome;return}}
+const TMAX=3;
+function normT(x){if(!x)return null;const tries=x.tries&&x.tries.length?x.tries:[{score:x.score,letter:x.letter,nat:x.nat,by:x.by,ans:x.ans,at:x.at,mins:x.mins}];return {...x,tries,attempts:x.attempts||tries.length}}
+function openTest(){need(async()=>{showPv(loadingV());let ex=null;
+  if(!isAdm()){try{ex=normT(await API.getSub(USER.uid+'__test'))}catch(e){return showPv(`<div class="pcard">${esc(errTxt(e))}</div>`)}
+    if(!ex){await loadMySubs();if(nSub()<7){showPv(`<div class="pcard intro"><h1>Тест ще закритий</h1><p>Підсумковий тест відкривається після здачі всіх семи лабораторних робіт викладачу. Здано: <b>${nSub()} з 7</b>.</p><div class="actions" style="justify-content:center"><button class="pri" id="tMy">Мій кабінет</button><button id="tBk">На головну</button></div></div>`);$('#tMy').onclick=openMy;$('#tBk').onclick=showHome;return}}}
   try{TS=JSON.parse(localStorage.getItem(tKey())||'null')}catch(e){TS=null}
   if(TS&&TS.fin&&!isAdm())return finishTest(true);
   if(TS&&!TS.fin)return renderTest();
+  if(ex&&ex.attempts>=TMAX)return testResult(ex);
+  const k=(ex?ex.attempts:0)+1;
   showPv(`<div class="pcard intro"><h1>Підсумковий тест</h1><p class="note" style="font-size:16px">Інтегральні системи безпеки · ${esc(PROFILE.name)}${PROFILE.group&&!isAdm()?', група '+esc(PROFILE.group):''}</p>
-   <div class="rules"><div><b>50</b><span>питань: 20 легких, 20 середніх, 10 складних</span></div><div><b>100</b><span>балів: 0,5 / 2 / 5 за правильну відповідь</span></div><div><b>60 хв</b><span>після цього тест завершиться сам</span></div><div><b>1</b><span>спроба. Перездачу відкриває викладач</span></div></div>
-   <p>Можна пересуватися між питаннями й змінювати відповіді до завершення. Прогрес зберігається, якщо сторінка випадково закриється.</p>
+   ${ex?`<div class="msg hint" style="display:block">Спроба ${k} з ${TMAX}. Ваш найкращий результат: <b>${fmtN(ex.score)} б. (${ex.letter})</b>. Зараховується найкращий з усіх спроб.</div>`:''}
+   <div class="rules"><div><b>50</b><span>питань: 20 легких, 20 середніх, 10 складних</span></div><div><b>100</b><span>балів: 0,5 / 2 / 5 за правильну відповідь</span></div><div><b>60 хв</b><span>на одну спробу, потім тест завершиться сам</span></div><div><b>${TMAX}</b><span>спроби. Зараховується найкращий результат</span></div></div>
+   <p>Можна пересуватися між питаннями й змінювати відповіді до завершення. Прогрес зберігається, якщо сторінка випадково закриється. Правильні відповіді з поясненнями відкриються після останньої спроби.</p>
    ${isAdm()?'<p class="note">Ви адміністратор: результат не записується, це перегляд тесту очима студента.</p>':''}
-   <div class="actions" style="justify-content:center"><button class="pri" id="tGo" style="padding:13px 30px;font-size:17px">Почати тест</button><button id="tBack">Повернутися</button></div></div>`);
-  $('#tBack').onclick=showHome;
-  $('#tGo').onclick=()=>{const r=rng(USER.uid+'isb');const idx=l=>TQ.map((q,i)=>q.l===l?i:-1).filter(i=>i>=0);
-    TS={order:[...shuf(idx('e'),r),...shuf(idx('m'),r),...shuf(idx('h'),r)],perm:TQ.map(()=>shuf([0,1,2,3],r)),ans:{},start:Date.now(),cur:0};tSave();renderTest()}})}
+   <div class="actions" style="justify-content:center"><button class="pri" id="tGo" style="padding:13px 30px;font-size:17px">${ex?'Почати спробу '+k:'Почати тест'}</button>${ex?'<button id="tRes">Мій результат</button>':''}<button id="tBack">Повернутися</button></div></div>`);
+  $('#tBack').onclick=showHome;if($('#tRes'))$('#tRes').onclick=()=>testResult(ex);
+  $('#tGo').onclick=()=>{const r=rng(USER.uid+'isb'+k);const idx=l=>TQ.map((q,i)=>q.l===l?i:-1).filter(i=>i>=0);
+    TS={order:[...shuf(idx('e'),r),...shuf(idx('m'),r),...shuf(idx('h'),r)],perm:TQ.map(()=>shuf([0,1,2,3],r)),ans:{},start:Date.now(),cur:0,k};tSave();renderTest()}})}
 const tSave=()=>{try{localStorage.setItem(tKey(),JSON.stringify(TS))}catch(e){}};
 function renderTest(){const left=()=>TS.start+TMIN*60000-Date.now();
   showPv(`<div class="tv"><aside class="pcard tnav"><div class="note">Залишилось часу</div><div class="timer" id="tTime">60:00</div>
@@ -2997,26 +3002,36 @@ function drawQ(){const i=TS.cur,qi=TS.order[i],q=TQ[qi],per=TS.perm[qi];
   $('#tQ').querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{TS.ans[qi]=+b.dataset.o;tSave();drawQ()});
   $('#tPrev').onclick=()=>{TS.cur--;tSave();drawQ()};$('#tNext').onclick=()=>{if(i<49){TS.cur++;tSave();drawQ()}else $('#tFin').focus()}}
 async function finishTest(resend){clearInterval(window._tT);const ans=TQ.map((_,i)=>TS.ans[i]!=null?TS.ans[i]:-1),{score,by}=scoreOf(ans),[L,N]=ects(score);
-  TS.fin=true;tSave();
-  const p={uid:USER.uid,email:USER.email,name:PROFILE.name,group:PROFILE.group||'',kind:'test',score,max:100,letter:L,nat:N,
-    by:{e:by.e,m:by.m,h:by.h},ans,mins:Math.round((Date.now()-TS.start)/60000),at:new Date().toISOString()};
-  if(isAdm()){localStorage.removeItem(tKey());return testResult(p,'Перегляд адміністратора: результат не записано.')}
+  if(!TS.fin){TS.fin=true;TS.at=new Date().toISOString();tSave()}
+  const t={score,letter:L,nat:N,by:{e:by.e,m:by.m,h:by.h},ans,mins:Math.round((Date.now()-TS.start)/60000),at:TS.at};
+  const base={uid:USER.uid,email:USER.email,name:PROFILE.name,group:PROFILE.group||'',kind:'test',max:100};
+  const build=tries=>{const best=tries.reduce((a,x)=>x.score>a.score?x:a,tries[0]);return {...base,attempts:tries.length,tries,score:best.score,letter:best.letter,nat:best.nat,by:best.by,ans:best.ans,mins:best.mins,at:t.at,bestAt:best.at}};
+  if(isAdm()){localStorage.removeItem(tKey());return testResult(build([t]),'Перегляд адміністратора: результат не записано.')}
   showPv(loadingV('Надсилаю результат…'));
-  try{await API.putSub(USER.uid+'__test',p);MYSUBS.test=p;localStorage.removeItem(tKey());testResult(p)}
+  try{const ex=normT(await API.getSub(USER.uid+'__test'));
+    if(ex&&ex.tries.some(x=>x.at===t.at)){localStorage.removeItem(tKey());MYSUBS.test=ex;return testResult(ex)}
+    if(ex&&ex.attempts>=TMAX){localStorage.removeItem(tKey());return testResult(ex,'Усі спроби вже використано, ця спроба не зарахована.')}
+    const p=build([...(ex?ex.tries:[]),t]);await API.putSub(USER.uid+'__test',p);MYSUBS.test=p;localStorage.removeItem(tKey());testResult(p)}
   catch(e){showPv(`<div class="pcard intro"><h1>Результат не надіслано</h1><p>${esc(errTxt(e))}</p><p class="note">Відповіді збережені на цьому пристрої.</p><div class="actions" style="justify-content:center"><button class="pri" id="tRe">Надіслати ще раз</button></div></div>`);$('#tRe').onclick=()=>finishTest(true)}}
-function testResult(p,note){const sc=p.score,deg=Math.round(sc*3.6),only={v:false};
-  const draw=()=>{$('#rvL').innerHTML=TQ.map((q,i)=>({q,i,a:p.ans[i]})).filter(x=>!only.v||x.a!==x.q.a).map(({q,i,a})=>`<div class="rvi ${a===q.a?'':'bad'}"><div class="q">${esc(q.q)} <span class="qlv ${q.l}" style="font-size:11.5px;padding:2px 8px;margin-left:6px">${fmtN(PTS[q.l])}</span></div>
-    ${a===q.a?`<div class="k">✓ ${esc(q.o[q.a])}</div>`:`<div class="y">✕ ${a>=0?esc(q.o[a]):'без відповіді'}</div><div class="k">Правильно: ${esc(q.o[q.a])}</div>`}<div class="x">${esc(q.x)}</div></div>`).join('')||'<p class="note">Помилок немає.</p>'};
-  showPv(`<div class="pvh"><div><h1>Результат тесту</h1><p>${esc(p.name)}${p.group?', група '+esc(p.group):''} · ${dtS(p.at)}${p.mins!=null?' · '+p.mins+' хв':''}</p></div><button id="rsBack">На головну</button></div>
+function testResult(p0,note){const p=normT(p0),sc=p.score,deg=Math.round(sc*3.6),only={v:false},adm=!!note&&isAdm(),full=adm||p.attempts>=TMAX||isAdm();let cur=p.tries.length-1;
+  const left=TMAX-p.attempts;
+  const draw=()=>{const T=p.tries[cur];$('#rvH').textContent=`Розбір спроби ${cur+1}: ${fmtN(T.score)} б. (${T.letter})`;
+    $('#rvL').innerHTML=TQ.map((q,i)=>({q,i,a:T.ans[i]})).filter(x=>!only.v||x.a!==x.q.a).map(({q,i,a})=>`<div class="rvi ${a===q.a?'':'bad'}"><div class="q">${esc(q.q)} <span class="qlv ${q.l}" style="font-size:11.5px;padding:2px 8px;margin-left:6px">${fmtN(PTS[q.l])}</span></div>
+    ${a===q.a?`<div class="k">✓ ${esc(q.o[q.a])}</div>`:`<div class="y">✕ ${a>=0?esc(q.o[a]):'без відповіді'}</div>${full?`<div class="k">Правильно: ${esc(q.o[q.a])}</div>`:''}`}${full?`<div class="x">${esc(q.x)}</div>`:''}</div>`).join('')||'<p class="note">Помилок немає.</p>';
+    $('#trs').querySelectorAll('[data-tr]').forEach(b=>b.classList.toggle('on',+b.dataset.tr===cur))};
+  showPv(`<div class="pvh"><div><h1>Результат тесту</h1><p>${esc(p.name)}${p.group?', група '+esc(p.group):''} · спроб використано: ${p.attempts} з ${TMAX}</p></div><div style="display:flex;gap:10px">${left>0&&!note?`<button class="pri" id="rsNew">Нова спроба · залишилось ${left}</button>`:''}<button id="rsBack">На головну</button></div></div>
    ${note?`<div class="msg hint" style="display:block;margin:0 0 16px">${esc(note)}</div>`:''}
-   <div class="res"><aside class="pcard"><div class="ring" style="background:conic-gradient(var(--blue),var(--cyan) ${deg*.5}deg,var(--violet) ${deg}deg,var(--g1) ${deg}deg)"><div><b>${fmtN(sc)}</b><span>балів зі 100</span></div></div>
+   <div class="res"><aside class="pcard"><div class="note" style="text-align:center">${p.attempts>1?'Найкращий результат':'Результат'}</div><div class="ring" style="background:conic-gradient(var(--blue),var(--cyan) ${deg*.5}deg,var(--violet) ${deg}deg,var(--g1) ${deg}deg)"><div><b>${fmtN(sc)}</b><span>балів зі 100</span></div></div>
     <div class="grade"><b>${p.letter}</b>${p.nat}</div><div class="lvres">${['e','m','h'].map(l=>`<div><span>${LVN[l]} (${p.by[l].ok} з ${p.by[l].n})</span><b>${fmtN(p.by[l].p)} б.</b></div>`).join('')}</div>
+    <div class="trs" id="trs">${p.tries.map((x,i)=>`<button data-tr="${i}"><span>Спроба ${i+1}</span><b>${fmtN(x.score)} · ${x.letter}</b><small>${dtS(x.at)}</small></button>`).join('')}</div>
     <button id="rsDl" style="width:100%;margin-top:14px">Завантажити результат</button><span class="note" id="rsN"></span></aside>
-    <section class="pcard"><div class="tbar"><b style="font-size:17px;color:var(--sapph)">Розбір відповідей</b><label class="note" style="margin-left:auto;display:flex;gap:6px;align-items:center"><input type="checkbox" id="rvO" style="width:auto">лише помилки</label></div><div class="rv" id="rvL"></div></section></div>`);
-  draw();$('#rvO').onchange=e=>{only.v=e.target.checked;draw()};$('#rsBack').onclick=showHome;
-  $('#rsDl').onclick=()=>{const h=`<!DOCTYPE html><html lang="uk"><head><meta charset="utf-8"><title>Результат тесту</title><style>body{font-family:Arial,sans-serif;max-width:800px;margin:30px auto;font-size:14px}h1{font-size:22px}.b{color:#B3263D}.g{color:#077A57}p{margin:4px 0}div{margin:10px 0;padding:8px 10px;border-left:3px solid #ccc}</style></head><body>
-   <h1>Підсумковий тест · Інтегральні системи безпеки</h1><p>${esc(p.name)}, група ${esc(p.group)} · ${esc(p.email)}</p><p>Дата: ${dtS(p.at)}</p><h2>${fmtN(sc)} балів зі 100 · ${p.letter} (${p.nat})</h2>
-   ${TQ.map((q,i)=>`<div><p><b>${i+1}. ${esc(q.q)}</b> (${fmtN(PTS[q.l])} б.)</p><p class="${p.ans[i]===q.a?'g':'b'}">Відповідь: ${p.ans[i]>=0?esc(q.o[p.ans[i]]):'—'}</p>${p.ans[i]===q.a?'':`<p class="g">Правильно: ${esc(q.o[q.a])}</p>`}</div>`).join('')}</body></html>`;
+    <section class="pcard"><div class="tbar"><b style="font-size:17px;color:var(--sapph)" id="rvH">Розбір відповідей</b><label class="note" style="margin-left:auto;display:flex;gap:6px;align-items:center"><input type="checkbox" id="rvO" style="width:auto">лише помилки</label></div>
+    ${full?'':`<div class="msg hint" style="display:block;margin:0 0 12px">Правильні відповіді й пояснення з'являться після останньої, ${TMAX}-ї спроби. Поки що видно, де ви помилилися.</div>`}<div class="rv" id="rvL"></div></section></div>`);
+  draw();$('#rvO').onchange=e=>{only.v=e.target.checked;draw()};$('#rsBack').onclick=showHome;if($('#rsNew'))$('#rsNew').onclick=openTest;
+  $('#trs').querySelectorAll('[data-tr]').forEach(b=>b.onclick=()=>{cur=+b.dataset.tr;draw()});
+  $('#rsDl').onclick=()=>{const T=p.tries[cur],h=`<!DOCTYPE html><html lang="uk"><head><meta charset="utf-8"><title>Результат тесту</title><style>body{font-family:Arial,sans-serif;max-width:800px;margin:30px auto;font-size:14px}h1{font-size:22px}.b{color:#B3263D}.g{color:#077A57}p{margin:4px 0}div{margin:10px 0;padding:8px 10px;border-left:3px solid #ccc}</style></head><body>
+   <h1>Підсумковий тест · Інтегральні системи безпеки</h1><p>${esc(p.name)}, група ${esc(p.group)} · ${esc(p.email)}</p><p>Спроби: ${p.tries.map((x,i)=>(i+1)+') '+fmtN(x.score)+' б. '+x.letter).join('; ')}</p><h2>Зараховано: ${fmtN(sc)} балів зі 100 · ${p.letter} (${p.nat})</h2><p>Розбір спроби ${cur+1} від ${dtS(T.at)}</p>
+   ${TQ.map((q,i)=>`<div><p><b>${i+1}. ${esc(q.q)}</b> (${fmtN(PTS[q.l])} б.)</p><p class="${T.ans[i]===q.a?'g':'b'}">Відповідь: ${T.ans[i]>=0?esc(q.o[T.ans[i]]):'—'}</p>${T.ans[i]===q.a||!full?'':`<p class="g">Правильно: ${esc(q.o[q.a])}</p>`}</div>`).join('')}</body></html>`;
    dlFile('Тест_ІСБ_'+(p.name||'').split(' ')[0]+'.html',h,$('#rsN'))}}
 
 /* ---------- student cabinet ---------- */
@@ -3046,7 +3061,7 @@ function renderAdmin(){const rows=admRows(),groups=[...new Set(rows.map(r=>r.gro
   const vis=rows.filter(r=>(!ADM.g||r.group===ADM.g)&&(!ADM.q||(r.name+' '+r.email).toLowerCase().includes(ADM.q.toLowerCase())));
   const tests=vis.map(r=>r.subs.test).filter(Boolean),labsN=vis.reduce((a,r)=>a+Object.keys(r.subs).filter(k=>k!=='test').length,0),toMark=vis.reduce((a,r)=>a+Object.entries(r.subs).filter(([k,s])=>k!=='test'&&(s.mark==null||s.mark==='')).length,0);
   const cell=(r,k)=>{const s=r.subs[k];if(!s)return `<span class="cell no">—</span>`;
-    if(k==='test')return `<button class="cell mk" data-sub="${esc(s.uid+'__test')}">${fmtN(s.score)} <span class="badge2 b${s.letter}">${s.letter}</span></button>`;
+    if(k==='test')return `<button class="cell mk" data-sub="${esc(s.uid+'__test')}" title="спроб: ${normT(s).attempts} з ${TMAX}">${fmtN(s.score)} <span class="badge2 b${s.letter}">${s.letter}</span> <small class="note">${normT(s).attempts}/${TMAX}</small></button>`;
     const m=s.mark!=null&&s.mark!=='';return `<button class="cell ${m?'mk':s.done>=s.total?'ok':'part'}" data-sub="${esc(s.uid+'__'+k)}" title="${s.done} з ${s.total} кроків">${m?esc(s.mark):s.done+'/'+s.total}</button>`};
   showPv(`<div class="pvh"><div><h1>Кабінет викладача</h1><p>Інтегральні системи безпеки · студенти, здані роботи і результати тесту</p></div><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="pri" id="adVid">Сформувати відомість</button><button class="pri" id="adRep">Звіт</button><button id="adCsv">CSV</button><button id="adR">Оновити</button><button id="adBack">На головну</button><span class="note" id="adN" style="flex-basis:100%;text-align:right"></span></div></div>
    <div class="kp"><div><b>${vis.length}</b><span>студентів${ADM.g?' у групі '+esc(ADM.g):''}</span></div><div><b>${labsN}</b><span>лабораторних здано</span></div><div><b>${toMark}</b><span>чекають на оцінку</span></div>
@@ -3109,7 +3124,7 @@ function admSub(id){const s=ADM.ss.find(x=>x.uid+'__'+x.kind===id);if(!s)return;
   const head=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><h2 style="margin:0">${s.kind==='test'?'Підсумковий тест':'ЛР № '+s.n+'. '+esc(s.title)}</h2><p class="note" style="margin:4px 0 0">${esc(s.name)}, група ${esc(s.group)} · ${esc(s.email)} · здано ${dtS(s.at)}</p></div><button class="ghost" id="amX" aria-label="Закрити">✕</button></div>`;
   if(s.kind==='test'){B.innerHTML=head+`<div class="kp" style="margin-top:16px"><div><b>${fmtN(s.score)}</b><span>балів зі 100</span></div><div><b>${s.letter}</b><span>${s.nat}</span></div>${['e','m','h'].map(l=>`<div><b>${s.by[l].ok} / ${s.by[l].n}</b><span>${LVN[l].toLowerCase()} · ${fmtN(s.by[l].p)} б.</span></div>`).join('')}</div>
      <div class="rv">${TQ.map((q,i)=>{const a=s.ans[i];return `<div class="rvi ${a===q.a?'':'bad'}"><div class="q">${i+1}. ${esc(q.q)}</div>${a===q.a?`<div class="k">✓ ${esc(q.o[q.a])}</div>`:`<div class="y">✕ ${a>=0?esc(q.o[a]):'без відповіді'}</div><div class="k">Правильно: ${esc(q.o[q.a])}</div>`}</div>`}).join('')}</div>
-     <div class="subbox"><span>Студент має одну спробу. Щоб дозволити перездачу, видаліть цей результат.</span><button id="amDel" style="margin-left:auto;color:var(--err)">Дозволити перездачу</button><span class="note" id="amN"></span></div>`}
+     <div class="subbox"><span>Використано спроб: <b>${normT(s).attempts} з ${TMAX}</b> (${normT(s).tries.map((x,i)=>(i+1)+') '+fmtN(x.score)).join(', ')}). Зараховано найкращий результат; нижче — розбір найкращої спроби. Щоб дати ще ${TMAX} спроби, видаліть результат.</span><button id="amDel" style="margin-left:auto;color:var(--err)">Скинути спроби</button><span class="note" id="amN"></span></div>`}
   else B.innerHTML=head+`<p class="note">Виконано кроків: ${s.done} з ${s.total} · помилок під час перевірок: ${s.errs} · час: ${s.mins} хв</p>
      <p class="ttl">Параметри</p><table class="tbl">${s.rows.map(r=>`<tr><th style="width:42%">${esc(r.k)}</th><td>${esc(r.v)}</td></tr>`).join('')}</table>
      ${s.tables.map(t=>`<p class="note" style="margin:10px 0 2px">${esc(t.title)}</p><table class="tbl"><tr>${t.head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr>${t.rows.map(r=>`<tr>${r.c.map(x=>`<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</table>`).join('')}
