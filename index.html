@@ -2728,7 +2728,7 @@ const TQ=[
 /* ======================= PLATFORM: вхід, здача, тест, кабінети ======================= */
 const FBCFG={apiKey:"AIzaSyDtmLn0rw5Bk0UXVFgtS8WKjp-8LhJa4qA",authDomain:"isb-virtual-lab.firebaseapp.com",projectId:"isb-virtual-lab",storageBucket:"isb-virtual-lab.firebasestorage.app",messagingSenderId:"665578325054",appId:"1:665578325054:web:e9ab1dadbd7482f70bfd6f"};
 const ADMINS=['vovkvlgr@gmail.com'];
-const UNI=/^[^@\s]+@ztu\.edu\.ua$/i;
+const UNI=/^[^@\s]+@(student\.)?ztu\.edu\.ua$/i;
 let FB=null,USER=null,PROFILE=null,AUTHST='load',PENDING=null,MYSUBS={};
 const allowed=e=>UNI.test(e||'')||ADMINS.includes((e||'').toLowerCase());
 const nSub=()=>[1,2,3,4,5,6,7].filter(n=>MYSUBS['lab'+n]).length;
@@ -2758,7 +2758,7 @@ if(window.__FBAPI)Object.assign(API,window.__FBAPI);
 
 const ERR={'auth/email-already-in-use':'Ця пошта вже зареєстрована. Увійдіть або відновіть пароль.','auth/invalid-email':'Неправильний формат пошти.','auth/weak-password':'Пароль закороткий: потрібно щонайменше 8 символів.',
   'auth/invalid-credential':'Неправильна пошта або пароль.','auth/wrong-password':'Неправильна пошта або пароль.','auth/user-not-found':'Неправильна пошта або пароль.','auth/too-many-requests':'Забагато спроб. Зачекайте кілька хвилин.',
-  'auth/network-request-failed':'Немає з\'єднання з сервером. Перевірте інтернет.','permission-denied':'Сервер відхилив запит: увійдіть з підтвердженою поштою @ztu.edu.ua.'};
+  'auth/network-request-failed':'Немає з\'єднання з сервером. Перевірте інтернет.','permission-denied':'Сервер відхилив запит: увійдіть з підтвердженою університетською поштою.'};
 const errTxt=e=>ERR[e&&e.code]||('Помилка: '+((e&&(e.code||e.message))||e));
 const fmtN=x=>String(Math.round(x*10)/10).replace('.',',');
 const dtS=x=>{if(!x)return '—';const d=x.toDate?x.toDate():new Date(x);return d.toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})};
@@ -2844,7 +2844,7 @@ body.pv #pv{display:block} body.pv #home,body.pv .wrap{display:none!important} b
 document.body.insertAdjacentHTML('beforeend',`<section id="pv"></section>
 <div class="modal" id="mAuth"><div class="box auth"><button class="ghost mclose" id="auX" aria-label="Закрити">✕</button>
  <div class="au-art"><div class="rings"></div><h2>Віртуальна лабораторія ІСБ</h2><p>Вхід для студентів і викладачів Житомирської політехніки.</p>
-  <ul><li><i>✓</i>Реєстрація лише з університетською поштою @ztu.edu.ua</li><li><i>✓</i>Прогрес і здані роботи прив'язані до вашого акаунта</li><li><i>✓</i>Викладач бачить звіти і результати тесту</li></ul></div>
+  <ul><li><i>✓</i>Реєстрація лише з університетською поштою @student.ztu.edu.ua або @ztu.edu.ua</li><li><i>✓</i>Прогрес і здані роботи прив'язані до вашого акаунта</li><li><i>✓</i>Викладач бачить звіти і результати тесту</li></ul></div>
  <div class="au-main" id="auMain"></div></div></div>
 <div class="modal" id="mAdm"><div class="box" id="admBox" style="max-width:980px"></div></div>`);
 $('header #btnHome').insertAdjacentHTML('beforebegin','<div id="acct"></div>');
@@ -2859,24 +2859,24 @@ function closeAuth(){$('#mAuth').classList.remove('on')}
 $('#auX').onclick=()=>{closeAuth();PENDING=null};
 function renderAuth(mode){const M=$('#auMain');const tabs=`<div class="au-tabs"><button data-am="in" class="${mode==='in'?'on':''}">Вхід</button><button data-am="up" class="${mode==='up'?'on':''}">Реєстрація</button></div>`;
   if(AUTHST==='fail'){M.innerHTML=`<h3 style="margin-top:4px">Немає з'єднання з сервером</h3><p class="note">Сервер авторизації недоступний. Перевірте інтернет і оновіть сторінку.</p><div class="actions"><button class="pri" onclick="location.reload()">Оновити сторінку</button></div>`;return}
-  if(mode==='in')M.innerHTML=tabs+`<div class="au-f"><label>Пошта<input id="auE" type="email" autocomplete="username" placeholder="прізвище@ztu.edu.ua"></label><label>Пароль<input id="auP" type="password" autocomplete="current-password"></label>
+  if(mode==='in')M.innerHTML=tabs+`<div class="au-f"><label>Пошта<input id="auE" type="email" autocomplete="username" placeholder="логін@student.ztu.edu.ua"></label><label>Пароль<input id="auP" type="password" autocomplete="current-password"></label>
     <div style="display:flex;justify-content:space-between;align-items:center"><button class="pri" id="auGo">Увійти</button><button class="au-link" id="auRs">Забули пароль?</button></div><div class="msg" id="auM"></div></div>`;
   if(mode==='up')M.innerHTML=tabs+`<div class="au-f"><label>ПІБ<input id="auN" placeholder="Коваленко Олена Ігорівна"></label><label>Група<input id="auG" placeholder="КБ-22-1"></label>
-    <label>Університетська пошта<input id="auE" type="email" autocomplete="username" placeholder="прізвище@ztu.edu.ua"></label><div class="hint">Лише адреси @ztu.edu.ua. На пошту прийде лист для підтвердження.</div>
+    <label>Університетська пошта<input id="auE" type="email" autocomplete="username" placeholder="логін@student.ztu.edu.ua"></label><div class="hint">Лише адреси @student.ztu.edu.ua або @ztu.edu.ua. На пошту прийде лист для підтвердження.</div>
     <label>Пароль<input id="auP" type="password" autocomplete="new-password" placeholder="щонайменше 8 символів"></label><label>Повторіть пароль<input id="auP2" type="password" autocomplete="new-password"></label>
     <div><button class="pri" id="auGo">Зареєструватися</button></div><div class="msg" id="auM"></div></div>`;
-  if(mode==='reset')M.innerHTML=`<h3 style="margin:4px 40px 6px 0">Відновлення пароля</h3><p class="note">Надішлемо посилання для нового пароля на вашу пошту.</p><div class="au-f"><label>Пошта<input id="auE" type="email" placeholder="прізвище@ztu.edu.ua"></label>
+  if(mode==='reset')M.innerHTML=`<h3 style="margin:4px 40px 6px 0">Відновлення пароля</h3><p class="note">Надішлемо посилання для нового пароля на вашу пошту.</p><div class="au-f"><label>Пошта<input id="auE" type="email" placeholder="логін@student.ztu.edu.ua"></label>
     <div style="display:flex;gap:10px"><button class="pri" id="auGo">Надіслати посилання</button><button id="auBk">Назад до входу</button></div><div class="msg" id="auM"></div></div>`;
   if(mode==='verify')M.innerHTML=`<div class="au-mail">✉️</div><h3 style="margin:0 40px 6px 0">Підтвердіть пошту</h3><p>Ми надіслали лист на <b>${esc(USER&&USER.email)}</b>. Відкрийте його, натисніть посилання, потім поверніться сюди.</p><p class="note">Не бачите листа? Перевірте папку «Спам».</p>
     <div class="actions"><button class="pri" id="auVf">Я підтвердив(ла) пошту</button><button id="auRe">Надіслати ще раз</button><button class="ghost" id="auOut">Вийти</button></div><div class="msg" id="auM"></div>`;
-  if(mode==='wrong')M.innerHTML=`<h3 style="margin:4px 40px 6px 0">Потрібна пошта @ztu.edu.ua</h3><p>Ви увійшли як <b>${esc(USER&&USER.email)}</b>. Лабораторія доступна лише з університетською поштою.</p><div class="actions"><button class="pri" id="auOut">Вийти і зареєструватися заново</button></div>`;
+  if(mode==='wrong')M.innerHTML=`<h3 style="margin:4px 40px 6px 0">Потрібна університетська пошта</h3><p>Ви увійшли як <b>${esc(USER&&USER.email)}</b>. Лабораторія доступна лише з університетською поштою.</p><div class="actions"><button class="pri" id="auOut">Вийти і зареєструватися заново</button></div>`;
   M.querySelectorAll('[data-am]').forEach(b=>b.onclick=()=>renderAuth(b.dataset.am));
   const msg=(t,c='err')=>{const m=$('#auM');if(m){m.className='msg '+c;m.textContent=t}};
   const busy=(b,on)=>{if(b){b.disabled=on;b.style.opacity=on?.6:1}};
   const go=$('#auGo'),E=()=>($('#auE').value||'').trim().toLowerCase();
   if(mode==='in'){go.onclick=async()=>{const e=E(),p=$('#auP').value;if(!e||!p)return msg('Введіть пошту і пароль.');busy(go,1);try{await API.signIn(e,p)}catch(x){msg(errTxt(x))}busy(go,0)};$('#auP').onkeydown=e=>{if(e.key==='Enter')go.click()};$('#auRs').onclick=()=>renderAuth('reset')}
   if(mode==='up')go.onclick=async()=>{const n=$('#auN').value.trim().replace(/\s+/g,' '),g=$('#auG').value.trim().toUpperCase(),e=E(),p=$('#auP').value;
-    if(n.split(' ').length<2)return msg('Вкажіть прізвище та ім\'я.');if(!g)return msg('Вкажіть групу.');if(!allowed(e))return msg('Потрібна університетська пошта @ztu.edu.ua.');
+    if(n.split(' ').length<2)return msg('Вкажіть прізвище та ім\'я.');if(!g)return msg('Вкажіть групу.');if(!allowed(e))return msg('Потрібна університетська пошта @student.ztu.edu.ua або @ztu.edu.ua.');
     if(p.length<8)return msg('Пароль закороткий: потрібно щонайменше 8 символів.');if(p!==$('#auP2').value)return msg('Паролі не збігаються.');
     busy(go,1);try{await API.signUp(e,p,n,g);PROFILE={name:n,group:g};renderAuth('verify')}catch(x){msg(errTxt(x))}busy(go,0)};
   if(mode==='reset'){go.onclick=async()=>{const e=E();if(!e)return msg('Введіть пошту.');busy(go,1);try{await API.reset(e);msg('Посилання надіслано. Перевірте пошту.','ok')}catch(x){msg(errTxt(x))}busy(go,0)};$('#auBk').onclick=()=>renderAuth('in')}
@@ -2918,7 +2918,7 @@ function renderCta(){const C=$('.hero .cta');if(!C)return;
       :`<div class="hello">Вітаємо, ${esc(first)}! ${nSub()} з 7 робіт здано${MYSUBS.test?' · тест: '+fmtN(MYSUBS.test.score)+' б.':''}</div><button class="pri" id="cN">${nx?'Продовжити: лабораторна № '+nx:'Підсумковий тест'}</button><button class="ghostw" id="cM">Мій кабінет</button>`;
     if($('#cA'))$('#cA').onclick=openAdmin;if($('#cL'))$('#cL').onclick=()=>$('#labsSec').scrollIntoView({behavior:'smooth'});
     if($('#cN'))$('#cN').onclick=()=>nx?openLab(nx):openTest();if($('#cM'))$('#cM').onclick=openMy}
-  else{C.innerHTML=`<button class="pri" id="cUp">Зареєструватися</button><button class="ghostw" id="cIn">Увійти</button><div class="hello" style="flex-basis:100%;margin:4px 0 0">Для студентів з університетською поштою @ztu.edu.ua</div>`;
+  else{C.innerHTML=`<button class="pri" id="cUp">Зареєструватися</button><button class="ghostw" id="cIn">Увійти</button><div class="hello" style="flex-basis:100%;margin:4px 0 0">Для студентів з поштою @student.ztu.edu.ua</div>`;
     $('#cUp').onclick=()=>openAuth('up');$('#cIn').onclick=()=>openAuth('in')}}
 function renderGrid(){const ok=isOk(),adm=isAdm(),ns=nSub(),tOpen=adm||ns>=7||!!MYSUBS.test,t=MYSUBS.test;
   const cards=LABS.map(l=>{const st=ST[l.n],d=Object.keys(st.done).length,tot=STEPSM[l.n].length,sb=MYSUBS['lab'+l.n];
@@ -2944,7 +2944,7 @@ function thumb(src,w=560){return new Promise(r=>{if(!src)return r(null);const i=
 {const or=openReport;openReport=function(){or();const a=$('#reportBox .actions');if(!a)return;
   a.insertAdjacentHTML('afterend',`<div class="subbox" id="subBox"><b>Здача викладачу</b><span id="subSt" class="note">перевіряю…</span><button class="pri" id="rSub" style="margin-left:auto">Здати роботу</button></div>`);
   $('#rSub').onclick=()=>need(submitLab);subStatus()};$('#btnReport').onclick=openReport}
-async function subStatus(){const el=$('#subSt');if(!el)return;if(!isOk()){el.textContent='увійдіть з поштою @ztu.edu.ua, щоб здати роботу';return}
+async function subStatus(){const el=$('#subSt');if(!el)return;if(!isOk()){el.textContent='увійдіть з університетською поштою, щоб здати роботу';return}
   try{const d=await API.getSub(USER.uid+'__lab'+CUR);el.innerHTML=d?`здано ${dtS(d.at)}${d.mark!=null&&d.mark!==''?` · оцінка викладача: <b>${esc(d.mark)}</b>`:' · ще не оцінено'}${d.comment?` · «${esc(d.comment)}»`:''}`:'ще не здано';if(d)$('#rSub').textContent='Здати повторно'}catch(e){el.textContent=errTxt(e)}}
 async function submitLab(){const b=$('#rSub'),el=$('#subSt');if(!b)return;const n=Object.keys(S.done).length,tot=STEPS.length;
   if(n<tot&&!b.dataset.c){b.dataset.c=1;b.textContent=`Виконано ${n} з ${tot}. Здати все одно?`;setTimeout(()=>{if(b.isConnected){b.dataset.c='';b.textContent='Здати роботу'}},5000);return}
