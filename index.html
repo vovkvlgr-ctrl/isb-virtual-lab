@@ -2727,20 +2727,24 @@ const TQ=[
 
 /* ======================= PLATFORM: вхід, здача, тест, кабінети ======================= */
 const FBCFG={apiKey:"AIzaSyDtmLn0rw5Bk0UXVFgtS8WKjp-8LhJa4qA",authDomain:"isb-virtual-lab.firebaseapp.com",projectId:"isb-virtual-lab",storageBucket:"isb-virtual-lab.firebasestorage.app",messagingSenderId:"665578325054",appId:"1:665578325054:web:e9ab1dadbd7482f70bfd6f"};
-const ADMINS=['vovkvlgr@gmail.com'];
+/* Хто адмін, вирішує сервер (правила Firestore, колекція admins); адреса адміна в коді не зберігається. */
+let ADMFLAG=false;
 const UNI=/^[^@\s]+@(student\.)?ztu\.edu\.ua$/i;
 let FB=null,USER=null,PROFILE=null,AUTHST='load',PENDING=null,MYSUBS={};
-const allowed=e=>UNI.test(e||'')||ADMINS.includes((e||'').toLowerCase());
+const allowed=e=>UNI.test(e||'')||(ADMFLAG&&!!USER&&(USER.email||'').toLowerCase()===(e||'').toLowerCase());
 const nSub=()=>[1,2,3,4,5,6,7].filter(n=>MYSUBS['lab'+n]).length;
-const isAdm=()=>!!(USER&&USER.emailVerified&&ADMINS.includes((USER.email||'').toLowerCase()));
+const DEPTS=["Кафедра комп'ютерних технологій у медицині та телекомунікаціях","Кафедра комп'ютерної інженерії та штучного інтелекту","Кафедра інженерії програмного забезпечення","Кафедра кібербезпеки та захисту інформації","Кафедра комп'ютерних наук","Інша кафедра університету"];
+const isT=()=>!!(PROFILE&&PROFILE.role==='teacher');
+const isAdm=()=>!!(USER&&USER.emailVerified&&ADMFLAG);
 const isOk=()=>!!(USER&&USER.emailVerified&&allowed(USER.email));
 const API={
   async load(){const b='https://www.gstatic.com/firebasejs/10.12.2/';const [ap,au,fs]=await Promise.all([import(b+'firebase-app.js'),import(b+'firebase-auth.js'),import(b+'firebase-firestore.js')]);
     const app=ap.initializeApp(FBCFG),auth=au.getAuth(app);auth.languageCode='uk';FB={auth,db:fs.getFirestore(app),A:au,F:fs}},
   onAuth:cb=>FB.A.onAuthStateChanged(FB.auth,cb),
-  async signUp(email,pw,name,group){const {auth,A,F,db}=FB;const c=await A.createUserWithEmailAndPassword(auth,email,pw);await A.updateProfile(c.user,{displayName:name});
-    if(!ADMINS.includes(email.toLowerCase()))await F.setDoc(F.doc(db,'users',c.user.uid),{name,group,email:email.toLowerCase(),role:'student',created:F.serverTimestamp()});
+  async signUp(email,pw,name,group,role='student',dept=''){const {auth,A,F,db}=FB;const c=await A.createUserWithEmailAndPassword(auth,email,pw);await A.updateProfile(c.user,{displayName:name});
+    await F.setDoc(F.doc(db,'users',c.user.uid),{name,group,dept,email:email.toLowerCase(),role,created:F.serverTimestamp()});
     await A.sendEmailVerification(c.user);return c.user},
+  async amAdmin(uid){await FB.F.getDoc(FB.F.doc(FB.db,'admins',uid))},
   signIn:(e,p)=>FB.A.signInWithEmailAndPassword(FB.auth,e,p),
   signOut:()=>FB.A.signOut(FB.auth),
   reset:e=>FB.A.sendPasswordResetEmail(FB.auth,e),
@@ -2772,7 +2776,7 @@ document.head.insertAdjacentHTML('beforeend',`<style>
 body.pv #pv{display:block} body.pv #home,body.pv .wrap{display:none!important} body.pv #btnReport,body.pv #btnTheory,body.pv .prog,body.pv .labname{visibility:hidden}
 .welcome{position:relative}.mclose{position:absolute;right:12px;top:10px;z-index:5;font-size:20px;line-height:1;width:38px;height:38px;padding:0;border-radius:50%;color:var(--g4)}
 .mclose:hover{background:var(--g1)}
-#acct{position:relative;margin-left:auto}header button{white-space:nowrap;transition-property:background,color,border-color,box-shadow,transform}.achip{white-space:nowrap}body.signed #whoami{display:none}header{z-index:55!important}.modal{top:66px!important}.modal .box{max-height:calc(100vh - 106px)!important}.mfloat{position:fixed;right:22px;top:80px;z-index:70;display:flex;align-items:center;gap:8px;background:#fff;border:none;border-radius:30px;padding:9px 16px 9px 14px;font-size:18px;line-height:1;color:var(--sapph);box-shadow:0 10px 30px -8px rgba(10,31,77,.55)}.mfloat span{font-size:11.5px;font-weight:700;color:var(--g4);border:1px solid var(--g2);border-radius:6px;padding:2px 5px}.mfloat:hover{color:var(--blue)}.trs{display:grid;gap:6px;margin-top:14px}.trs button{display:grid;grid-template-columns:1fr auto;text-align:left;border-radius:12px;padding:8px 12px;font-size:13.5px}.trs button small{grid-column:1/3;color:var(--g4);font-size:12px}.trs button.on{border-color:var(--blue);background:#EEF3FF}header .logo{cursor:pointer;border-radius:12px;transition:opacity .2s}header .logo:hover{opacity:.85}body.home #btnHome,body.home #acIn{display:none}#acct+#btnHome{margin-left:0}
+#acct{position:relative;margin-left:auto}header button{white-space:nowrap;transition-property:background,color,border-color,box-shadow,transform}.achip{white-space:nowrap}body.signed #whoami{display:none}header{z-index:55!important}.modal{top:66px!important}.modal .box{max-height:calc(100vh - 106px)!important}.mfloat{position:fixed;right:22px;top:80px;z-index:70;display:flex;align-items:center;gap:8px;background:#fff;border:none;border-radius:30px;padding:9px 16px 9px 14px;font-size:18px;line-height:1;color:var(--sapph);box-shadow:0 10px 30px -8px rgba(10,31,77,.55)}.mfloat span{font-size:11.5px;font-weight:700;color:var(--g4);border:1px solid var(--g2);border-radius:6px;padding:2px 5px}.mfloat:hover{color:var(--blue)}.trs{display:grid;gap:6px;margin-top:14px}.trs button{display:grid;grid-template-columns:1fr auto;text-align:left;border-radius:12px;padding:8px 12px;font-size:13.5px}.trs button small{grid-column:1/3;color:var(--g4);font-size:12px}.trs button.on{border-color:var(--blue);background:#EEF3FF}.rolesw{display:flex;gap:8px}.rolesw button{flex:1;border-radius:12px;padding:9px}.rolesw button.on{border-color:var(--blue);background:#EEF3FF;color:var(--blue);font-weight:700}header .logo{cursor:pointer;border-radius:12px;transition:opacity .2s}header .logo:hover{opacity:.85}body.home #btnHome,body.home #acIn{display:none}#acct+#btnHome{margin-left:0}
 .achip{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:30px;padding:4px 14px 4px 4px}
 .achip:hover{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.4)}
 .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12.5px;background:linear-gradient(135deg,var(--cyan),var(--violet));color:#fff;flex:none}
@@ -2861,8 +2865,9 @@ function renderAuth(mode){const M=$('#auMain');const tabs=`<div class="au-tabs">
   if(AUTHST==='fail'){M.innerHTML=`<h3 style="margin-top:4px">Немає з'єднання з сервером</h3><p class="note">Сервер авторизації недоступний. Перевірте інтернет і оновіть сторінку.</p><div class="actions"><button class="pri" onclick="location.reload()">Оновити сторінку</button></div>`;return}
   if(mode==='in')M.innerHTML=tabs+`<div class="au-f"><label>Пошта<input id="auE" type="email" autocomplete="username" placeholder="логін@student.ztu.edu.ua"></label><label>Пароль<input id="auP" type="password" autocomplete="current-password"></label>
     <div style="display:flex;justify-content:space-between;align-items:center"><button class="pri" id="auGo">Увійти</button><button class="au-link" id="auRs">Забули пароль?</button></div><div class="msg" id="auM"></div></div>`;
-  if(mode==='up')M.innerHTML=tabs+`<div class="au-f"><label>ПІБ<input id="auN" placeholder="Коваленко Олена Ігорівна"></label><label>Група<input id="auG" placeholder="КБ-22-1"></label>
-    <label>Університетська пошта<input id="auE" type="email" autocomplete="username" placeholder="логін@student.ztu.edu.ua"></label><div class="hint">Лише адреси @student.ztu.edu.ua або @ztu.edu.ua. На пошту прийде лист для підтвердження.</div>
+  if(mode==='up')M.innerHTML=tabs+`<div class="au-f"><div class="rolesw" role="radiogroup" aria-label="Хто реєструється"><button data-role="student" class="on" role="radio" aria-checked="true">Я студент</button><button data-role="teacher" role="radio" aria-checked="false">Я викладач</button></div>
+    <label>ПІБ<input id="auN" placeholder="Коваленко Олена Ігорівна"></label><label id="auGL">Група<input id="auG" placeholder="КБ-22-1"></label><label id="auDL" style="display:none">Кафедра<select id="auD"><option value="">Оберіть кафедру</option>${DEPTS.map(d=>`<option>${esc(d)}</option>`).join('')}</select></label>
+    <label>Університетська пошта<input id="auE" type="email" autocomplete="username" placeholder="логін@student.ztu.edu.ua"></label><div class="hint" id="auH">Студентська пошта @student.ztu.edu.ua. На пошту прийде лист для підтвердження.</div>
     <label>Пароль<input id="auP" type="password" autocomplete="new-password" placeholder="щонайменше 8 символів"></label><label>Повторіть пароль<input id="auP2" type="password" autocomplete="new-password"></label>
     <div><button class="pri" id="auGo">Зареєструватися</button></div><div class="msg" id="auM"></div></div>`;
   if(mode==='reset')M.innerHTML=`<h3 style="margin:4px 40px 6px 0">Відновлення пароля</h3><p class="note">Надішлемо посилання для нового пароля на вашу пошту.</p><div class="au-f"><label>Пошта<input id="auE" type="email" placeholder="логін@student.ztu.edu.ua"></label>
@@ -2875,32 +2880,38 @@ function renderAuth(mode){const M=$('#auMain');const tabs=`<div class="au-tabs">
   const busy=(b,on)=>{if(b){b.disabled=on;b.style.opacity=on?.6:1}};
   const go=$('#auGo'),E=()=>($('#auE').value||'').trim().toLowerCase();
   if(mode==='in'){go.onclick=async()=>{const e=E(),p=$('#auP').value;if(!e||!p)return msg('Введіть пошту і пароль.');busy(go,1);try{await API.signIn(e,p)}catch(x){msg(errTxt(x))}busy(go,0)};$('#auP').onkeydown=e=>{if(e.key==='Enter')go.click()};$('#auRs').onclick=()=>renderAuth('reset')}
-  if(mode==='up')go.onclick=async()=>{const n=$('#auN').value.trim().replace(/\s+/g,' '),g=$('#auG').value.trim().toUpperCase(),e=E(),p=$('#auP').value;
-    if(n.split(' ').length<2)return msg('Вкажіть прізвище та ім\'я.');if(!g)return msg('Вкажіть групу.');if(!allowed(e))return msg('Потрібна університетська пошта @student.ztu.edu.ua або @ztu.edu.ua.');
+  if(mode==='up'){let role='student';M.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{role=b.dataset.role;M.querySelectorAll('[data-role]').forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-checked',x===b)});
+      const t=role==='teacher';$('#auGL').style.display=t?'none':'';$('#auDL').style.display=t?'':'none';$('#auE').placeholder=t?'прізвище@ztu.edu.ua':'логін@student.ztu.edu.ua';
+      $('#auH').textContent=t?'Викладачі реєструються з робочою поштою @ztu.edu.ua. Акаунт отримає позначку «викладач». На пошту прийде лист для підтвердження.':'Студентська пошта @student.ztu.edu.ua. На пошту прийде лист для підтвердження.'});
+  go.onclick=async()=>{const t=role==='teacher',n=$('#auN').value.trim().replace(/\s+/g,' '),g=t?'':$('#auG').value.trim().toUpperCase(),dp=t?$('#auD').value:'',e=E(),p=$('#auP').value;
+    if(n.split(' ').length<2)return msg('Вкажіть прізвище та ім\'я.');if(!t&&!g)return msg('Вкажіть групу.');if(t&&!dp)return msg('Оберіть кафедру.');
+    if(!t&&!/@student\.ztu\.edu\.ua$/i.test(e))return msg('Студенти реєструються зі студентською поштою @student.ztu.edu.ua.');if(!allowed(e))return msg('Потрібна університетська пошта @student.ztu.edu.ua або @ztu.edu.ua.');
+    if(t&&!/@ztu\.edu\.ua$/i.test(e))return msg('Викладачі реєструються з робочою поштою @ztu.edu.ua.');
     if(p.length<8)return msg('Пароль закороткий: потрібно щонайменше 8 символів.');if(p!==$('#auP2').value)return msg('Паролі не збігаються.');
-    busy(go,1);try{await API.signUp(e,p,n,g);PROFILE={name:n,group:g};renderAuth('verify')}catch(x){msg(errTxt(x))}busy(go,0)};
+    busy(go,1);try{await API.signUp(e,p,n,g,t?'teacher':'student',dp);PROFILE={name:n,group:g,dept:dp,role:t?'teacher':'student'};renderAuth('verify')}catch(x){msg(errTxt(x))}busy(go,0)}}
   if(mode==='reset'){go.onclick=async()=>{const e=E();if(!e)return msg('Введіть пошту.');busy(go,1);try{await API.reset(e);msg('Посилання надіслано. Перевірте пошту.','ok')}catch(x){msg(errTxt(x))}busy(go,0)};$('#auBk').onclick=()=>renderAuth('in')}
   if(mode==='verify'){$('#auVf').onclick=async()=>{try{USER=await API.reload();if(USER.emailVerified){await onUser(USER)}else msg('Пошту ще не підтверджено. Натисніть посилання в листі.')}catch(x){msg(errTxt(x))}};
     $('#auRe').onclick=async()=>{try{await API.resend();msg('Лист надіслано ще раз.','ok')}catch(x){msg(errTxt(x))}}}
   if($('#auOut'))$('#auOut').onclick=async()=>{await API.signOut();renderAuth(mode==='wrong'?'up':'in')};
   const f=M.querySelector('input');if(f)setTimeout(()=>f.focus(),50);
 }
-async function onUser(u){USER=u;PROFILE=null;
+async function onUser(u){USER=u;PROFILE=null;ADMFLAG=false;
+  if(u&&u.emailVerified){try{await API.amAdmin(u.uid);ADMFLAG=true}catch(e){}}
   if(u){try{PROFILE=await API.getUser(u.uid)}catch(e){}if(!PROFILE)PROFILE={name:u.displayName||u.email,group:isAdm()?'викладач':''}}
   MYSUBS={};if(u&&isOk()&&!isAdm())await loadMySubs();
   AUTHST='ready';applyProfile();renderAcct();
   if(u&&$('#mAuth').classList.contains('on')){if(isOk()){closeAuth();const f=PENDING;PENDING=null;f&&f()}else renderAuth(!u.emailVerified?'verify':'wrong')}
   if(!u&&document.body.classList.contains('pv'))showHome();
 }
-function applyProfile(){if(!isOk()||!PROFILE)return;const st={name:PROFILE.name,group:PROFILE.group||''};
+function applyProfile(){if(!isOk()||!PROFILE)return;const st={name:PROFILE.name,group:isT()?'викладач':PROFILE.group||''};
   Object.entries(ST).forEach(([k,x])=>{if(x.student.name!==st.name||x.student.group!==st.group){x.student={...st};try{localStorage.setItem(LSK[k],JSON.stringify(x))}catch(e){}}});
   $('#stName').value=st.name;$('#stGroup').value=st.group;$('#stName').readOnly=$('#stGroup').readOnly=true;
 }
 function renderAcct(){const A=$('#acct');if(AUTHST==='load'){A.innerHTML='';return}
   document.body.classList.toggle('signed',isOk());renderGrid();renderCta();
   if(!USER||!isOk()){A.innerHTML=`<button class="sm" id="acIn" style="background:#fff;color:var(--navy);border:none">${USER?'Завершити вхід':'Увійти'}</button>`;$('#acIn').onclick=()=>openAuth();return}
-  A.innerHTML=`<button class="achip" id="acB"><span class="av">${esc(ini(PROFILE.name))}</span><span style="font-size:13.5px">${esc(PROFILE.name.split(' ').slice(0,2).join(' '))}${isAdm()?'<span class="tagadm">адмін</span>':''}</span></button>
-   <div class="amenu" id="acM"><div class="hd"><b>${esc(PROFILE.name)}</b><span>${esc(USER.email)}${PROFILE.group&&!isAdm()?' · '+esc(PROFILE.group):''}</span></div>
+  A.innerHTML=`<button class="achip" id="acB"><span class="av">${esc(ini(PROFILE.name))}</span><span style="font-size:13.5px">${esc(PROFILE.name.split(' ').slice(0,2).join(' '))}${isAdm()?'<span class="tagadm">адмін</span>':PROFILE.role==='teacher'?'<span class="tagadm">викладач</span>':''}</span></button>
+   <div class="amenu" id="acM"><div class="hd"><b>${esc(PROFILE.name)}</b><span>${esc(USER.email)}${isT()&&PROFILE.dept?' · '+esc(PROFILE.dept):PROFILE.group&&!isAdm()?' · '+esc(PROFILE.group):''}</span></div>
    ${isAdm()?'<button id="acAdm">Кабінет викладача</button><button id="acT">Переглянути тест</button>':'<button id="acMy">Мій кабінет</button><button id="acT">Підсумковий тест</button>'}<button id="acOut" style="color:var(--err)">Вийти</button></div>`;
   $('#acB').onclick=e=>{e.stopPropagation();$('#acM').classList.toggle('on')};
   if($('#acMy'))$('#acMy').onclick=openMy;$('#acT').onclick=openTest;if($('#acAdm'))$('#acAdm').onclick=openAdmin;
@@ -2915,12 +2926,13 @@ const TESTICO='<svg viewBox="0 0 64 64" width="62%" height="62%" fill="none" str
 function renderCta(){const C=$('.hero .cta');if(!C)return;
   if(isOk()){const nx=[1,2,3,4,5,6,7].find(n=>!MYSUBS['lab'+n])||null,first=(PROFILE.name.split(' ')[1]||PROFILE.name.split(' ')[0]);
     C.innerHTML=isAdm()?`<button class="pri" id="cA">Кабінет викладача</button><button class="ghostw" id="cL">Лабораторні роботи</button>`
+      :isT()?`<div class="hello">Вітаємо, ${esc(first)}! Ви зареєстровані як викладач${PROFILE.dept?' · '+esc(PROFILE.dept):''}</div><button class="pri" id="cL">Лабораторні роботи</button><button class="ghostw" id="cT">Переглянути тест</button>`
       :`<div class="hello">Вітаємо, ${esc(first)}! ${nSub()} з 7 робіт здано${MYSUBS.test?' · тест: '+fmtN(MYSUBS.test.score)+' б.':''}</div><button class="pri" id="cN">${nx?'Продовжити: лабораторна № '+nx:'Підсумковий тест'}</button><button class="ghostw" id="cM">Мій кабінет</button>`;
-    if($('#cA'))$('#cA').onclick=openAdmin;if($('#cL'))$('#cL').onclick=()=>$('#labsSec').scrollIntoView({behavior:'smooth'});
+    if($('#cA'))$('#cA').onclick=openAdmin;if($('#cT'))$('#cT').onclick=openTest;if($('#cL'))$('#cL').onclick=()=>$('#labsSec').scrollIntoView({behavior:'smooth'});
     if($('#cN'))$('#cN').onclick=()=>nx?openLab(nx):openTest();if($('#cM'))$('#cM').onclick=openMy}
-  else{C.innerHTML=`<button class="pri" id="cUp">Зареєструватися</button><button class="ghostw" id="cIn">Увійти</button><div class="hello" style="flex-basis:100%;margin:4px 0 0">Для студентів з поштою @student.ztu.edu.ua</div>`;
+  else{C.innerHTML=`<button class="pri" id="cUp">Зареєструватися</button><button class="ghostw" id="cIn">Увійти</button><div class="hello" style="flex-basis:100%;margin:4px 0 0">Студенти — з поштою @student.ztu.edu.ua, викладачі — з @ztu.edu.ua</div>`;
     $('#cUp').onclick=()=>openAuth('up');$('#cIn').onclick=()=>openAuth('in')}}
-function renderGrid(){const ok=isOk(),adm=isAdm(),ns=nSub(),tOpen=adm||ns>=7||!!MYSUBS.test,t=MYSUBS.test;
+function renderGrid(){const ok=isOk(),adm=isAdm(),ns=nSub(),tOpen=adm||ns>=7||!!MYSUBS.test||(PROFILE&&PROFILE.role==='teacher'),t=MYSUBS.test;
   const cards=LABS.map(l=>{const st=ST[l.n],d=Object.keys(st.done).length,tot=STEPSM[l.n].length,sb=MYSUBS['lab'+l.n];
     const foot=!ok?'<span class="lockt">Доступно після реєстрації</span>':sb?`<button class="pri">Відкрити</button><span class="donechip">Здано${sb.mark!=null&&sb.mark!==''?' · '+esc(sb.mark):''}</span>`:`<button class="pri">${d?'Продовжити':'Почати'}</button><span class="note">${d} з ${tot} кроків</span>`;
     return `<div class="lcard ${ok?'live':'locked'}" style="--c1:${l.c}" ${ok?`data-open="${l.n}" tabindex="0"`:''}><div class="ph"><img src="img/${l.img}.webp" alt=""></div><div class="num">${String(l.n).padStart(2,'0')}</div><span class="sys">${l.sys}</span><h3>${l.t}</h3><p>${l.p}</p><div class="foot">${foot}</div></div>`});
@@ -2945,6 +2957,7 @@ function thumb(src,w=560){return new Promise(r=>{if(!src)return r(null);const i=
   a.insertAdjacentHTML('afterend',`<div class="subbox" id="subBox"><b>Здача викладачу</b><span id="subSt" class="note">перевіряю…</span><button class="pri" id="rSub" style="margin-left:auto">Здати роботу</button></div>`);
   $('#rSub').onclick=()=>need(submitLab);subStatus()};$('#btnReport').onclick=openReport}
 async function subStatus(){const el=$('#subSt');if(!el)return;if(!isOk()){el.textContent='увійдіть з університетською поштою, щоб здати роботу';return}
+  if(isT()||isAdm()){el.textContent='ви переглядаєте роботу як викладач — здавати її не потрібно';$('#rSub').style.display='none';return}
   try{const d=await API.getSub(USER.uid+'__lab'+CUR);el.innerHTML=d?`здано ${dtS(d.at)}${d.mark!=null&&d.mark!==''?` · оцінка викладача: <b>${esc(d.mark)}</b>`:' · ще не оцінено'}${d.comment?` · «${esc(d.comment)}»`:''}`:'ще не здано';if(d)$('#rSub').textContent='Здати повторно'}catch(e){el.textContent=errTxt(e)}}
 async function submitLab(){const b=$('#rSub'),el=$('#subSt');if(!b)return;const n=Object.keys(S.done).length,tot=STEPS.length;
   if(n<tot&&!b.dataset.c){b.dataset.c=1;b.textContent=`Виконано ${n} з ${tot}. Здати все одно?`;setTimeout(()=>{if(b.isConnected){b.dataset.c='';b.textContent='Здати роботу'}},5000);return}
@@ -2967,10 +2980,10 @@ function scoreOf(ans){const by={e:{ok:0,n:0,p:0},m:{ok:0,n:0,p:0},h:{ok:0,n:0,p:
 const TMAX=3;
 function normT(x){if(!x)return null;const tries=x.tries&&x.tries.length?x.tries:[{score:x.score,letter:x.letter,nat:x.nat,by:x.by,ans:x.ans,at:x.at,mins:x.mins}];return {...x,tries,attempts:x.attempts||tries.length}}
 function openTest(){need(async()=>{showPv(loadingV());let ex=null;
-  if(!isAdm()){try{ex=normT(await API.getSub(USER.uid+'__test'))}catch(e){return showPv(`<div class="pcard">${esc(errTxt(e))}</div>`)}
-    if(!ex){await loadMySubs();if(nSub()<7){showPv(`<div class="pcard intro"><h1>Тест ще закритий</h1><p>Підсумковий тест відкривається після здачі всіх семи лабораторних робіт викладачу. Здано: <b>${nSub()} з 7</b>.</p><div class="actions" style="justify-content:center"><button class="pri" id="tMy">Мій кабінет</button><button id="tBk">На головну</button></div></div>`);$('#tMy').onclick=openMy;$('#tBk').onclick=showHome;return}}}
+  if(!isAdm()&&!isT()){try{ex=normT(await API.getSub(USER.uid+'__test'))}catch(e){return showPv(`<div class="pcard">${esc(errTxt(e))}</div>`)}
+    if(!ex&&PROFILE.role!=='teacher'){await loadMySubs();if(nSub()<7){showPv(`<div class="pcard intro"><h1>Тест ще закритий</h1><p>Підсумковий тест відкривається після здачі всіх семи лабораторних робіт викладачу. Здано: <b>${nSub()} з 7</b>.</p><div class="actions" style="justify-content:center"><button class="pri" id="tMy">Мій кабінет</button><button id="tBk">На головну</button></div></div>`);$('#tMy').onclick=openMy;$('#tBk').onclick=showHome;return}}}
   try{TS=JSON.parse(localStorage.getItem(tKey())||'null')}catch(e){TS=null}
-  if(TS&&TS.fin&&!isAdm())return finishTest(true);
+  if(TS&&TS.fin&&!isAdm()&&!isT())return finishTest(true);
   if(TS&&!TS.fin)return renderTest();
   if(ex&&ex.attempts>=TMAX)return testResult(ex);
   const k=(ex?ex.attempts:0)+1;
@@ -2978,7 +2991,7 @@ function openTest(){need(async()=>{showPv(loadingV());let ex=null;
    ${ex?`<div class="msg hint" style="display:block">Спроба ${k} з ${TMAX}. Ваш найкращий результат: <b>${fmtN(ex.score)} б. (${ex.letter})</b>. Зараховується найкращий з усіх спроб.</div>`:''}
    <div class="rules"><div><b>50</b><span>питань: 20 легких, 20 середніх, 10 складних</span></div><div><b>100</b><span>балів: 0,5 / 2 / 5 за правильну відповідь</span></div><div><b>60 хв</b><span>на одну спробу, потім тест завершиться сам</span></div><div><b>${TMAX}</b><span>спроби. Зараховується найкращий результат</span></div></div>
    <p>Можна пересуватися між питаннями й змінювати відповіді до завершення. Прогрес зберігається, якщо сторінка випадково закриється. Після кожної спроби ви побачите, у яких питаннях помилилися.</p>
-   ${isAdm()?'<p class="note">Ви адміністратор: результат не записується, це перегляд тесту очима студента.</p>':''}
+   ${isAdm()||isT()?`<p class="note">Ви ${isAdm()?'адміністратор':'викладач'}: результат не записується, це перегляд тесту очима студента.</p>`:''}
    <div class="actions" style="justify-content:center"><button class="pri" id="tGo" style="padding:13px 30px;font-size:17px">${ex?'Почати спробу '+k:'Почати тест'}</button>${ex?'<button id="tRes">Мій результат</button>':''}<button id="tBack">Повернутися</button></div></div>`);
   $('#tBack').onclick=showHome;if($('#tRes'))$('#tRes').onclick=()=>testResult(ex);
   $('#tGo').onclick=()=>{const r=rng(USER.uid+'isb'+k);const idx=l=>TQ.map((q,i)=>q.l===l?i:-1).filter(i=>i>=0);
@@ -3006,14 +3019,14 @@ async function finishTest(resend){clearInterval(window._tT);const ans=TQ.map((_,
   const t={score,letter:L,nat:N,by:{e:by.e,m:by.m,h:by.h},ans,mins:Math.round((Date.now()-TS.start)/60000),at:TS.at};
   const base={uid:USER.uid,email:USER.email,name:PROFILE.name,group:PROFILE.group||'',kind:'test',max:100};
   const build=tries=>{const best=tries.reduce((a,x)=>x.score>a.score?x:a,tries[0]);return {...base,attempts:tries.length,tries,score:best.score,letter:best.letter,nat:best.nat,by:best.by,ans:best.ans,mins:best.mins,at:t.at,bestAt:best.at}};
-  if(isAdm()){localStorage.removeItem(tKey());return testResult(build([t]),'Перегляд адміністратора: результат не записано.')}
+  if(isAdm()||isT()){localStorage.removeItem(tKey());return testResult(build([t]),'Перегляд '+(isAdm()?'адміністратора':'викладача')+': результат не записано.')}
   showPv(loadingV('Надсилаю результат…'));
   try{const ex=normT(await API.getSub(USER.uid+'__test'));
     if(ex&&ex.tries.some(x=>x.at===t.at)){localStorage.removeItem(tKey());MYSUBS.test=ex;return testResult(ex)}
     if(ex&&ex.attempts>=TMAX){localStorage.removeItem(tKey());return testResult(ex,'Усі спроби вже використано, ця спроба не зарахована.')}
     const p=build([...(ex?ex.tries:[]),t]);await API.putSub(USER.uid+'__test',p);MYSUBS.test=p;localStorage.removeItem(tKey());testResult(p)}
   catch(e){showPv(`<div class="pcard intro"><h1>Результат не надіслано</h1><p>${esc(errTxt(e))}</p><p class="note">Відповіді збережені на цьому пристрої.</p><div class="actions" style="justify-content:center"><button class="pri" id="tRe">Надіслати ще раз</button></div></div>`);$('#tRe').onclick=()=>finishTest(true)}}
-function testResult(p0,note){const p=normT(p0),sc=p.score,deg=Math.round(sc*3.6),only={v:false},adm=!!note&&isAdm(),full=isAdm();let cur=p.tries.length-1;
+function testResult(p0,note){const p=normT(p0),sc=p.score,deg=Math.round(sc*3.6),only={v:false},adm=!!note&&isAdm(),full=isAdm()||isT();let cur=p.tries.length-1;
   const left=TMAX-p.attempts;
   const draw=()=>{const T=p.tries[cur];$('#rvH').textContent=`Розбір спроби ${cur+1}: ${fmtN(T.score)} б. (${T.letter})`;
     $('#rvL').innerHTML=TQ.map((q,i)=>({q,i,a:T.ans[i]})).filter(x=>!only.v||x.a!==x.q.a).map(({q,i,a})=>`<div class="rvi ${a===q.a?'':'bad'}"><div class="q">${esc(q.q)} <span class="qlv ${q.l}" style="font-size:11.5px;padding:2px 8px;margin-left:6px">${fmtN(PTS[q.l])}</span></div>
@@ -3054,10 +3067,10 @@ function openMy(){need(async()=>{if(isAdm())return openAdmin();showPv(loadingV()
 let ADM={us:[],ss:[],g:'',q:''};
 function openAdmin(){need(async()=>{if(!isAdm())return openMy();showPv(loadingV('Завантажую студентів і здачі…'));
   try{const [us,ss]=await Promise.all([API.allUsers(),API.allSubs()]);ADM.us=us;ADM.ss=ss;renderAdmin()}catch(e){showPv(`<div class="pcard">${esc(errTxt(e))}</div>`)}})}
-function admRows(){const by={};ADM.us.filter(u=>!ADMINS.includes((u.email||'').toLowerCase())).forEach(u=>{by[u.id]={uid:u.id,name:u.name,group:(u.group||'').toUpperCase(),email:u.email,subs:{}}});
+function admRows(){const by={};ADM.us.filter(u=>u.uid!==USER.uid&&u.id!==USER.uid).forEach(u=>{by[u.id]={uid:u.id,name:u.name,group:(u.group||'').toUpperCase(),email:u.email,role:u.role||'student',dept:u.dept||'',subs:{}}});
   ADM.ss.forEach(s=>{const r=by[s.uid]||(by[s.uid]={uid:s.uid,name:s.name,group:(s.group||'').toUpperCase(),email:s.email,subs:{}});r.subs[s.kind]=s});
   return Object.values(by).sort((a,b)=>(a.group+a.name).localeCompare(b.group+b.name,'uk'))}
-function renderAdmin(){const rows=admRows(),groups=[...new Set(rows.map(r=>r.group).filter(Boolean))].sort();
+function renderAdmin(){const all=admRows(),teachers=all.filter(r=>r.role==='teacher'),rows=all.filter(r=>r.role!=='teacher'),groups=[...new Set(rows.map(r=>r.group).filter(Boolean))].sort();
   const vis=rows.filter(r=>(!ADM.g||r.group===ADM.g)&&(!ADM.q||(r.name+' '+r.email).toLowerCase().includes(ADM.q.toLowerCase())));
   const tests=vis.map(r=>r.subs.test).filter(Boolean),labsN=vis.reduce((a,r)=>a+Object.keys(r.subs).filter(k=>k!=='test').length,0),toMark=vis.reduce((a,r)=>a+Object.entries(r.subs).filter(([k,s])=>k!=='test'&&(s.mark==null||s.mark==='')).length,0);
   const cell=(r,k)=>{const s=r.subs[k];if(!s)return `<span class="cell no">—</span>`;
@@ -3069,7 +3082,7 @@ function renderAdmin(){const rows=admRows(),groups=[...new Set(rows.map(r=>r.gro
    <div class="pcard"><div class="tbar"><select id="adG"><option value="">Усі групи</option>${groups.map(g=>`<option ${g===ADM.g?'selected':''}>${esc(g)}</option>`).join('')}</select><input id="adQ" placeholder="Пошук за ПІБ або поштою" value="${esc(ADM.q)}">
     <span class="note" style="margin-left:auto">Клітинка: кроки виконано / усього; синя — оцінено. Натисніть, щоб відкрити звіт.</span></div>
     <div style="overflow:auto"><table class="gt"><tr><th>Студент</th><th>Група</th>${[1,2,3,4,5,6,7].map(n=>`<th class="c">ЛР ${n}</th>`).join('')}<th class="c">Тест</th></tr>
-    ${vis.map(r=>`<tr><td><b>${esc(r.name||'—')}</b><div class="note">${esc(r.email||'')}</div></td><td>${esc(r.group||'—')}</td>${[1,2,3,4,5,6,7].map(n=>`<td class="c">${cell(r,'lab'+n)}</td>`).join('')}<td class="c">${cell(r,'test')}</td></tr>`).join('')||'<tr><td colspan="10" class="note" style="padding:24px">Ще немає зареєстрованих студентів.</td></tr>'}</table></div></div>`);
+    ${vis.map(r=>`<tr><td><b>${esc(r.name||'—')}</b><div class="note">${esc(r.email||'')}</div></td><td>${esc(r.group||'—')}</td>${[1,2,3,4,5,6,7].map(n=>`<td class="c">${cell(r,'lab'+n)}</td>`).join('')}<td class="c">${cell(r,'test')}</td></tr>`).join('')||'<tr><td colspan="10" class="note" style="padding:24px">Ще немає зареєстрованих студентів.</td></tr>'}</table></div></div>${teachers.length?`<div class="pcard" style="margin-top:18px"><h3 style="margin:0 0 10px;color:var(--sapph)">Викладачі <span class="note" style="font-weight:400">· зареєстровані з позначкою «викладач», у відомості не потрапляють</span></h3><table class="gt"><tr><th>ПІБ</th><th>Кафедра</th><th>Пошта</th></tr>${teachers.map(r=>`<tr><td><b>${esc(r.name)}</b> <span class="tagadm">викладач</span></td><td>${esc(r.dept||'—')}</td><td>${esc(r.email)}</td></tr>`).join('')}</table></div>`:''}`);
   $('#adBack').onclick=showHome;$('#adR').onclick=openAdmin;$('#adVid').onclick=()=>admDoc('test');$('#adRep').onclick=()=>admDoc('all');
   $('#adG').onchange=e=>{ADM.g=e.target.value;renderAdmin()};$('#adQ').oninput=e=>{ADM.q=e.target.value;clearTimeout(window._adq);window._adq=setTimeout(()=>{renderAdmin();const q=$('#adQ');q.focus();q.setSelectionRange(q.value.length,q.value.length)},300)};
   $('#pv').querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>admSub(b.dataset.sub));
@@ -3087,7 +3100,7 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const open=[.
   const am=$('#acM');if(am&&am.classList.contains('on')){am.classList.remove('on');return}
   if(document.body.classList.contains('pv')&&!$('#tTime'))showHome()});
 /* ---------- admin documents: відомість (тест) і звіт (усі роботи) ---------- */
-function admVis(){return admRows().filter(r=>(!ADM.g||r.group===ADM.g)&&(!ADM.q||(r.name+' '+r.email).toLowerCase().includes(ADM.q.toLowerCase())))}
+function admVis(){return admRows().filter(r=>r.role!=='teacher').filter(r=>(!ADM.g||r.group===ADM.g)&&(!ADM.q||(r.name+' '+r.email).toLowerCase().includes(ADM.q.toLowerCase())))}
 async function admDoc(kind){const note=$('#adN');if(!window.docx){note.textContent='Бібліотека Word не завантажилась. Оновіть сторінку.';return}
   const {Document,Packer,Paragraph,TextRun,Table,TableRow,TableCell,WidthType,AlignmentType,PageOrientation,VerticalAlign}=docx;
   const vis=admVis(),today=new Date().toLocaleDateString('uk-UA'),grp=ADM.g||'усі групи',F='Times New Roman';
