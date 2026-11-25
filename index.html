@@ -2977,7 +2977,7 @@ function openTest(){need(async()=>{showPv(loadingV());let ex=null;
   showPv(`<div class="pcard intro"><h1>Підсумковий тест</h1><p class="note" style="font-size:16px">Інтегральні системи безпеки · ${esc(PROFILE.name)}${PROFILE.group&&!isAdm()?', група '+esc(PROFILE.group):''}</p>
    ${ex?`<div class="msg hint" style="display:block">Спроба ${k} з ${TMAX}. Ваш найкращий результат: <b>${fmtN(ex.score)} б. (${ex.letter})</b>. Зараховується найкращий з усіх спроб.</div>`:''}
    <div class="rules"><div><b>50</b><span>питань: 20 легких, 20 середніх, 10 складних</span></div><div><b>100</b><span>балів: 0,5 / 2 / 5 за правильну відповідь</span></div><div><b>60 хв</b><span>на одну спробу, потім тест завершиться сам</span></div><div><b>${TMAX}</b><span>спроби. Зараховується найкращий результат</span></div></div>
-   <p>Можна пересуватися між питаннями й змінювати відповіді до завершення. Прогрес зберігається, якщо сторінка випадково закриється. Правильні відповіді з поясненнями відкриються після останньої спроби.</p>
+   <p>Можна пересуватися між питаннями й змінювати відповіді до завершення. Прогрес зберігається, якщо сторінка випадково закриється. Після кожної спроби ви побачите, у яких питаннях помилилися.</p>
    ${isAdm()?'<p class="note">Ви адміністратор: результат не записується, це перегляд тесту очима студента.</p>':''}
    <div class="actions" style="justify-content:center"><button class="pri" id="tGo" style="padding:13px 30px;font-size:17px">${ex?'Почати спробу '+k:'Почати тест'}</button>${ex?'<button id="tRes">Мій результат</button>':''}<button id="tBack">Повернутися</button></div></div>`);
   $('#tBack').onclick=showHome;if($('#tRes'))$('#tRes').onclick=()=>testResult(ex);
@@ -3013,11 +3013,11 @@ async function finishTest(resend){clearInterval(window._tT);const ans=TQ.map((_,
     if(ex&&ex.attempts>=TMAX){localStorage.removeItem(tKey());return testResult(ex,'Усі спроби вже використано, ця спроба не зарахована.')}
     const p=build([...(ex?ex.tries:[]),t]);await API.putSub(USER.uid+'__test',p);MYSUBS.test=p;localStorage.removeItem(tKey());testResult(p)}
   catch(e){showPv(`<div class="pcard intro"><h1>Результат не надіслано</h1><p>${esc(errTxt(e))}</p><p class="note">Відповіді збережені на цьому пристрої.</p><div class="actions" style="justify-content:center"><button class="pri" id="tRe">Надіслати ще раз</button></div></div>`);$('#tRe').onclick=()=>finishTest(true)}}
-function testResult(p0,note){const p=normT(p0),sc=p.score,deg=Math.round(sc*3.6),only={v:false},adm=!!note&&isAdm(),full=adm||p.attempts>=TMAX||isAdm();let cur=p.tries.length-1;
+function testResult(p0,note){const p=normT(p0),sc=p.score,deg=Math.round(sc*3.6),only={v:false},adm=!!note&&isAdm(),full=isAdm();let cur=p.tries.length-1;
   const left=TMAX-p.attempts;
   const draw=()=>{const T=p.tries[cur];$('#rvH').textContent=`Розбір спроби ${cur+1}: ${fmtN(T.score)} б. (${T.letter})`;
     $('#rvL').innerHTML=TQ.map((q,i)=>({q,i,a:T.ans[i]})).filter(x=>!only.v||x.a!==x.q.a).map(({q,i,a})=>`<div class="rvi ${a===q.a?'':'bad'}"><div class="q">${esc(q.q)} <span class="qlv ${q.l}" style="font-size:11.5px;padding:2px 8px;margin-left:6px">${fmtN(PTS[q.l])}</span></div>
-    ${a===q.a?`<div class="k">✓ ${esc(q.o[q.a])}</div>`:`<div class="y">✕ ${a>=0?esc(q.o[a]):'без відповіді'}</div>${full?`<div class="k">Правильно: ${esc(q.o[q.a])}</div>`:''}`}${full?`<div class="x">${esc(q.x)}</div>`:''}</div>`).join('')||'<p class="note">Помилок немає.</p>';
+    ${full?(a===q.a?`<div class="k">✓ ${esc(q.o[q.a])}</div>`:`<div class="y">✕ ${a>=0?esc(q.o[a]):'без відповіді'}</div><div class="k">Правильно: ${esc(q.o[q.a])}</div>`)+`<div class="x">${esc(q.x)}</div>`:(a===q.a?'<div class="k">✓ правильно</div>':`<div class="y">✕ ${a>=0?'помилка':'без відповіді'}</div>`)}</div>`).join('')||'<p class="note">Помилок немає.</p>';
     $('#trs').querySelectorAll('[data-tr]').forEach(b=>b.classList.toggle('on',+b.dataset.tr===cur))};
   showPv(`<div class="pvh"><div><h1>Результат тесту</h1><p>${esc(p.name)}${p.group?', група '+esc(p.group):''} · спроб використано: ${p.attempts} з ${TMAX}</p></div><div style="display:flex;gap:10px">${left>0&&!note?`<button class="pri" id="rsNew">Нова спроба · залишилось ${left}</button>`:''}<button id="rsBack">На головну</button></div></div>
    ${note?`<div class="msg hint" style="display:block;margin:0 0 16px">${esc(note)}</div>`:''}
@@ -3026,12 +3026,12 @@ function testResult(p0,note){const p=normT(p0),sc=p.score,deg=Math.round(sc*3.6)
     <div class="trs" id="trs">${p.tries.map((x,i)=>`<button data-tr="${i}"><span>Спроба ${i+1}</span><b>${fmtN(x.score)} · ${x.letter}</b><small>${dtS(x.at)}</small></button>`).join('')}</div>
     <button id="rsDl" style="width:100%;margin-top:14px">Завантажити результат</button><span class="note" id="rsN"></span></aside>
     <section class="pcard"><div class="tbar"><b style="font-size:17px;color:var(--sapph)" id="rvH">Розбір відповідей</b><label class="note" style="margin-left:auto;display:flex;gap:6px;align-items:center"><input type="checkbox" id="rvO" style="width:auto">лише помилки</label></div>
-    ${full?'':`<div class="msg hint" style="display:block;margin:0 0 12px">Правильні відповіді й пояснення з'являться після останньої, ${TMAX}-ї спроби. Поки що видно, де ви помилилися.</div>`}<div class="rv" id="rvL"></div></section></div>`);
+    ${full?'':`<div class="msg hint" style="display:block;margin:0 0 12px">Тут видно, у яких питаннях ви помилилися. Правильні відповіді не показуються — поверніться до конспекту відповідних робіт.</div>`}<div class="rv" id="rvL"></div></section></div>`);
   draw();$('#rvO').onchange=e=>{only.v=e.target.checked;draw()};$('#rsBack').onclick=showHome;if($('#rsNew'))$('#rsNew').onclick=openTest;
   $('#trs').querySelectorAll('[data-tr]').forEach(b=>b.onclick=()=>{cur=+b.dataset.tr;draw()});
   $('#rsDl').onclick=()=>{const T=p.tries[cur],h=`<!DOCTYPE html><html lang="uk"><head><meta charset="utf-8"><title>Результат тесту</title><style>body{font-family:Arial,sans-serif;max-width:800px;margin:30px auto;font-size:14px}h1{font-size:22px}.b{color:#B3263D}.g{color:#077A57}p{margin:4px 0}div{margin:10px 0;padding:8px 10px;border-left:3px solid #ccc}</style></head><body>
    <h1>Підсумковий тест · Інтегральні системи безпеки</h1><p>${esc(p.name)}, група ${esc(p.group)} · ${esc(p.email)}</p><p>Спроби: ${p.tries.map((x,i)=>(i+1)+') '+fmtN(x.score)+' б. '+x.letter).join('; ')}</p><h2>Зараховано: ${fmtN(sc)} балів зі 100 · ${p.letter} (${p.nat})</h2><p>Розбір спроби ${cur+1} від ${dtS(T.at)}</p>
-   ${TQ.map((q,i)=>`<div><p><b>${i+1}. ${esc(q.q)}</b> (${fmtN(PTS[q.l])} б.)</p><p class="${T.ans[i]===q.a?'g':'b'}">Відповідь: ${T.ans[i]>=0?esc(q.o[T.ans[i]]):'—'}</p>${T.ans[i]===q.a||!full?'':`<p class="g">Правильно: ${esc(q.o[q.a])}</p>`}</div>`).join('')}</body></html>`;
+   ${TQ.map((q,i)=>`<div><p><b>${i+1}. ${esc(q.q)}</b> (${fmtN(PTS[q.l])} б.)</p>${full?`<p class="${T.ans[i]===q.a?'g':'b'}">Відповідь: ${T.ans[i]>=0?esc(q.o[T.ans[i]]):'—'}</p>${T.ans[i]===q.a?'':`<p class="g">Правильно: ${esc(q.o[q.a])}</p>`}`:`<p class="${T.ans[i]===q.a?'g':'b'}">${T.ans[i]===q.a?'✓ правильно':T.ans[i]>=0?'✕ помилка':'✕ без відповіді'}</p>`}</div>`).join('')}</body></html>`;
    dlFile('Тест_ІСБ_'+(p.name||'').split(' ')[0]+'.html',h,$('#rsN'))}}
 
 /* ---------- student cabinet ---------- */
