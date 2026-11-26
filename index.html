@@ -1020,6 +1020,33 @@ function audioDemo(c,vol,onEnd){try{if(_aud){_aud.stop();_aud=null}
   _aud={stop(){try{nodes.forEach(n=>n.stop())}catch(e){}if(window.speechSynthesis)speechSynthesis.cancel();try{ctx&&ctx.close()}catch(e){}}};
   setTimeout(end,dur*1000+300);return true}catch(e){return false}}
 
+/* ======================= LIVE AUDIO (ЛР2: звук камери і двосторонній зв'язок) ======================= */
+let _live=null;
+function liveStop(){if(_live){try{_live.stop()}catch(e){}_live=null}}
+function say(t,vol=1){if(!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);const vs=speechSynthesis.getVoices(),uv=vs.find(x=>/^uk/i.test(x.lang))||vs.find(x=>/^ru/i.test(x.lang));if(uv){u.voice=uv;u.lang=uv.lang}else u.lang='uk-UA';u.volume=vol;speechSynthesis.speak(u)}
+function camListen(){liveStop();const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;const ctx=new AC(),dur=6;
+  const len=ctx.sampleRate*dur,buf=ctx.createBuffer(1,len,ctx.sampleRate),d=buf.getChannelData(0);let b0=0,b1=0;
+  for(let i=0;i<len;i++){const w=Math.random()*2-1;b0=.995*b0+w*.03;b1=.97*b1+w*.04;d[i]=(b0+b1)*.5;
+    if(Math.random()<.00004){for(let j=0;j<400&&i+j<len;j++)d[i+j]+=Math.sin(j*.09)*.25*(1-j/400)}}
+  const src=ctx.createBufferSource();src.buffer=buf;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=3400;const g=ctx.createGain();g.gain.value=.35;
+  src.connect(lp);lp.connect(g);g.connect(ctx.destination);src.start();src.stop(ctx.currentTime+dur);
+  setTimeout(()=>say('Добрий день. Мені на прохідну, до лабораторії.',.9),900);
+  const t=setTimeout(()=>liveStop(),dur*1000+400);
+  _live={stop(){clearTimeout(t);try{src.stop()}catch(e){}if(window.speechSynthesis)speechSynthesis.cancel();ctx.close()}};return true}
+async function camTalk(lm){liveStop();const AC=window.AudioContext||window.webkitAudioContext;
+  const fallback=why=>{lm(why+' Відтворюю приклад оголошення через динамік камери.');say('Увага! Ви перебуваєте в зоні відеоспостереження. Відійдіть від воріт.',1)};
+  if(!AC||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder)return fallback('Браузер не дає доступу до мікрофона.');
+  let st;try{st=await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){return fallback('Мікрофон ПК недоступний або доступ заборонено.')}
+  const rec=new MediaRecorder(st),parts=[];rec.ondataavailable=e=>parts.push(e.data);let n=3;lm('🎙 Говоріть у мікрофон ПК: '+n+'…');
+  const iv=setInterval(()=>{n--;if(n>0)lm('🎙 Говоріть у мікрофон ПК: '+n+'…')},1000);
+  rec.onstop=async()=>{clearInterval(iv);st.getTracks().forEach(t=>t.stop());try{const ctx=new AC(),ab=await new Blob(parts).arrayBuffer(),bf=await ctx.decodeAudioData(ab);
+      const s=ctx.createBufferSource();s.buffer=bf;const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=300;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=3400;
+      const dl=ctx.createDelay();dl.delayTime.value=.12;const fb=ctx.createGain();fb.gain.value=.18;const g=ctx.createGain();g.gain.value=1.4;
+      s.connect(hp);hp.connect(lp);lp.connect(g);g.connect(ctx.destination);lp.connect(dl);dl.connect(fb);fb.connect(dl);fb.connect(ctx.destination);
+      lm('🔊 Динамік камери відтворює ваш голос (кодек G.711, затримка мережі).');s.start(ctx.currentTime+.35);
+      _live={stop(){try{s.stop()}catch(e){}ctx.close()}};s.onended=()=>setTimeout(liveStop,600)}catch(e){fallback('Не вдалося обробити запис.')}};
+  rec.start();setTimeout(()=>{if(rec.state==='recording')rec.stop()},3000)}
+
 /* ======================= SCREENSHOTS ======================= */
 async function snapShot(key,el){if(!el||!window.html2canvas)return;try{const c=await html2canvas(el,{backgroundColor:'#ffffff',scale:1,logging:false});S.shots[key]=c.toDataURL('image/jpeg',.75);save()}catch(e){}}
 
@@ -1267,8 +1294,8 @@ function bindWeb2(){const on=(id,f)=>{const e=document.getElementById(id);if(e)e
   const lm=t=>{const e=$('#lmsg2');if(e)e.textContent=t};
   const selC=()=>liveChans(h)[view2.sel]||liveChans(h)[0];
   on('stSw',()=>{view2.sub=!view2.sub;const n=view2.sub?'Додатковий':'Основний';if(!S.web.streams.includes(n))S.web.streams.push(n);if(!S.web.streams.includes('Основний')&&view2.sub)S.web.streams.push('Основний');save();renderApp2()});
-  on('aud',()=>{const c=selC();if(c.src==='ptz'){lm('PTZ-камера не має мікрофона.');return}if(S.cam.streamType!=='Відео та аудіо'){lm('Звук відсутній: потік не містить аудіо.');return}S.web.audioOk=true;save();lm('Звук увімкнено: чути мікрофон камери.')});
-  on('two',()=>{const c=selC();if(c.src==='ptz'){lm('PTZ-камера не підтримує двосторонній зв\'язок.');return}if(S.cam.streamType!=='Відео та аудіо'){S.web.twoFail=true;save();lm('Помилка запуску двостороннього аудіо: тип потоку каналу не містить аудіо.');return}S.web.twoOk=true;log('Двосторонній зв\'язок працює');save();lm('Двосторонній зв\'язок активний: говоріть у мікрофон ПК.')});
+  on('aud',()=>{const c=selC();if(c.src==='ptz'){lm('PTZ-камера не має мікрофона.');return}if(S.cam.streamType!=='Відео та аудіо'){lm('Звук відсутній: потік не містить аудіо.');return}S.web.audioOk=true;save();if(_live){liveStop();lm('Звук вимкнено.');return}camListen()?lm('🔊 Звук увімкнено: чути мікрофон камери. Натисніть «Звук» ще раз, щоб вимкнути.'):lm('Звук увімкнено: чути мікрофон камери.')});
+  on('two',()=>{const c=selC();if(c.src==='ptz'){lm('PTZ-камера не підтримує двосторонній зв\'язок.');return}if(S.cam.streamType!=='Відео та аудіо'){S.web.twoFail=true;save();lm('Помилка запуску двостороннього аудіо: тип потоку каналу не містить аудіо.');return}S.web.twoOk=true;log('Двосторонній зв\'язок працює');save();camTalk(lm)});
   on('snap',()=>{const cv_=document.querySelector(`[data-cell="${h===NVR2&&view2.layout===4?view2.sel:0}"] canvas`);if(!cv_)return;const sc=document.createElement('canvas');sc.width=320;sc.height=180;sc.getContext('2d').drawImage(cv_,0,0,320,180);const c=selC();S.files.push({name:`${c.id}_${Date.now()%1e6}.jpg`,kind:'jpg',src:c.name,wm:false,audio:false,img:sc.toDataURL('image/jpeg',.6),t:fmtT(new Date())});log('Знімок '+c.name);save();toast('Знімок збережено на ПК')});
   on('rec',()=>{const c=selC();if(!view2.rec){view2.rec={start:Date.now(),c};renderApp2();return}const d=Math.round((Date.now()-view2.rec.start)/1000);const cv_=document.querySelector('canvas[data-src]');const sc=document.createElement('canvas');sc.width=320;sc.height=180;if(cv_)sc.getContext('2d').drawImage(cv_,0,0,320,180);S.files.push({name:`${view2.rec.c.id}_clip_${Date.now()%1e6}.mp4`,kind:'mp4',src:view2.rec.c.name,wm:true,audio:S.cam.streamType==='Відео та аудіо'&&view2.rec.c.src==='cam',dur:Math.max(1,d),img:sc.toDataURL('image/jpeg',.6),t:fmtT(new Date())});view2.rec=null;log('Кліп записано ('+d+' с)');save();toast('Кліп збережено на ПК');renderApp2()});
   on('ptzT',()=>{view2.ptzOpen=!view2.ptzOpen;renderApp2()});
