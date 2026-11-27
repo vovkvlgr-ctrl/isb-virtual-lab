@@ -2791,8 +2791,8 @@ const allowed=e=>UNI.test(e||'')||(ADMFLAG&&!!USER&&(USER.email||'').toLowerCase
 const nSub=()=>[1,2,3,4,5,6,7].filter(n=>MYSUBS['lab'+n]).length;
 const DEPTS=["Кафедра комп'ютерних технологій у медицині та телекомунікаціях","Кафедра комп'ютерної інженерії та штучного інтелекту","Кафедра інженерії програмного забезпечення","Кафедра кібербезпеки та захисту інформації","Кафедра комп'ютерних наук","Інша кафедра університету"];
 const isT=()=>!!(PROFILE&&PROFILE.role==='teacher');
-const isAdm=()=>!!(USER&&USER.emailVerified&&ADMFLAG);
-const isOk=()=>!!(USER&&USER.emailVerified&&allowed(USER.email));
+const isAdm=()=>!!(USER&&ADMFLAG);
+const isOk=()=>!!(USER&&(ADMFLAG||(USER.emailVerified&&allowed(USER.email))));
 const API={
   async load(){const b='https://www.gstatic.com/firebasejs/10.12.2/';const [ap,au,fs]=await Promise.all([import(b+'firebase-app.js'),import(b+'firebase-auth.js'),import(b+'firebase-firestore.js')]);
     const app=ap.initializeApp(FBCFG),auth=au.getAuth(app);auth.languageCode='uk';FB={auth,db:fs.getFirestore(app),A:au,F:fs}},
@@ -2953,7 +2953,7 @@ function renderAuth(mode){const M=$('#auMain');const tabs=`<div class="au-tabs">
   const f=M.querySelector('input');if(f)setTimeout(()=>f.focus(),50);
 }
 async function onUser(u){USER=u;PROFILE=null;ADMFLAG=false;
-  if(u&&u.emailVerified){try{await API.amAdmin(u.uid);ADMFLAG=true}catch(e){}}
+  if(u){try{await API.amAdmin(u.uid);ADMFLAG=true}catch(e){}}
   if(u){try{PROFILE=await API.getUser(u.uid)}catch(e){}if(!PROFILE)PROFILE={name:u.displayName||u.email,group:isAdm()?'викладач':''}}
   MYSUBS={};if(u&&isOk()&&!isAdm())await loadMySubs();
   AUTHST='ready';applyProfile();renderAcct();
