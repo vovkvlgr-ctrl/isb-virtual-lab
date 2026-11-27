@@ -2798,7 +2798,7 @@ const API={
     const app=ap.initializeApp(FBCFG),auth=au.getAuth(app);auth.languageCode='uk';FB={auth,db:fs.getFirestore(app),A:au,F:fs}},
   onAuth:cb=>FB.A.onAuthStateChanged(FB.auth,cb),
   async signUp(email,pw,name,group,role='student',dept=''){const {auth,A,F,db}=FB;const c=await A.createUserWithEmailAndPassword(auth,email,pw);await A.updateProfile(c.user,{displayName:name});
-    await F.setDoc(F.doc(db,'users',c.user.uid),{name,group,dept,email:email.toLowerCase(),role,created:F.serverTimestamp()});
+    if(role!=='ext')await F.setDoc(F.doc(db,'users',c.user.uid),{name,group,dept,email:email.toLowerCase(),role,created:F.serverTimestamp()});
     await A.sendEmailVerification(c.user);return c.user},
   async amAdmin(uid){await FB.F.getDoc(FB.F.doc(FB.db,'admins',uid))},
   signIn:(e,p)=>FB.A.signInWithEmailAndPassword(FB.auth,e,p),
@@ -2941,10 +2941,11 @@ function renderAuth(mode){const M=$('#auMain');const tabs=`<div class="au-tabs">
       $('#auH').textContent=t?'Викладачі реєструються з робочою поштою @ztu.edu.ua. Акаунт отримає позначку «викладач». На пошту прийде лист для підтвердження.':'Студентська пошта @student.ztu.edu.ua. На пошту прийде лист для підтвердження.'});
   go.onclick=async()=>{const t=role==='teacher',n=$('#auN').value.trim().replace(/\s+/g,' '),g=t?'':$('#auG').value.trim().toUpperCase(),dp=t?$('#auD').value:'',e=E(),p=$('#auP').value;
     if(n.split(' ').length<2)return msg('Вкажіть прізвище та ім\'я.');if(!t&&!g)return msg('Вкажіть групу.');if(t&&!dp)return msg('Оберіть кафедру.');
-    if(!t&&!/@student\.ztu\.edu\.ua$/i.test(e))return msg('Студенти реєструються зі студентською поштою @student.ztu.edu.ua.');if(!allowed(e))return msg('Потрібна університетська пошта @student.ztu.edu.ua або @ztu.edu.ua.');
-    if(t&&!/@ztu\.edu\.ua$/i.test(e))return msg('Викладачі реєструються з робочою поштою @ztu.edu.ua.');
+    if(!t&&!/@student\.ztu\.edu\.ua$/i.test(e))return msg('Студенти реєструються зі студентською поштою @student.ztu.edu.ua.');
+    /* пошта поза ztu.edu.ua: акаунт створюється без профілю; доступ дає лише сервер (список адміністраторів у правилах Firestore) */
+    const ext=t&&!/@ztu\.edu\.ua$/i.test(e);
     if(p.length<8)return msg('Пароль закороткий: потрібно щонайменше 8 символів.');if(p!==$('#auP2').value)return msg('Паролі не збігаються.');
-    busy(go,1);try{await API.signUp(e,p,n,g,t?'teacher':'student',dp);PROFILE={name:n,group:g,dept:dp,role:t?'teacher':'student'};renderAuth('verify')}catch(x){msg(errTxt(x))}busy(go,0)}}
+    busy(go,1);try{await API.signUp(e,p,n,g,ext?'ext':t?'teacher':'student',dp);PROFILE={name:n,group:g,dept:dp,role:ext?'ext':t?'teacher':'student'};renderAuth('verify')}catch(x){msg(errTxt(x))}busy(go,0)}}
   if(mode==='reset'){go.onclick=async()=>{const e=E();if(!e)return msg('Введіть пошту.');busy(go,1);try{await API.reset(e);msg('Посилання надіслано. Перевірте пошту.','ok')}catch(x){msg(errTxt(x))}busy(go,0)};$('#auBk').onclick=()=>renderAuth('in')}
   if(mode==='verify'){$('#auVf').onclick=async()=>{try{USER=await API.reload();if(USER.emailVerified){await onUser(USER)}else msg('Пошту ще не підтверджено. Натисніть посилання в листі.')}catch(x){msg(errTxt(x))}};
     $('#auRe').onclick=async()=>{try{await API.resend();msg('Лист надіслано ще раз.','ok')}catch(x){msg(errTxt(x))}}}
